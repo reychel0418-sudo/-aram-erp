@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARAM INDUSTRY — 통합포털 ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- 카카오 우편번호 서비스 (주소 검색) — 무료, API키 불필요 -->
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" async></script>
+</head>
+<body>
+
+<!-- ══ ENV BANNER ══ -->
+<div id="env-banner">
+  <span class="env-dot"></span>
+  개발 서버 (DEV) — localhost
+  <span class="env-dot"></span>
+</div>
+
+<div class="app">
+
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<nav id="sidebar">
+  <!-- Logo -->
+  <div class="sb-logo">
+    <div class="sb-logo-mark">AR</div>
+    <span class="sb-logo-text">ARAM</span>
+  </div>
+
+  <!-- Navigation -->
+  <div class="sb-nav">
+
+    <div class="sb-item">
+      <div class="sb-link active" data-page="dashboard">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="sb-label">대시보드</span>
+      </div>
+    </div>
+
+    <div class="sb-item">
+      <div class="sb-link" data-page="menu">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>
+        <span class="sb-label">전체 메뉴</span>
+      </div>
+    </div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">업무</div>
+
+    <div class="sb-item" id="menu-sales">
+      <div class="sb-link" onclick="toggleMenu('menu-sales')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>
+        <span class="sb-label">영업/주문</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="sales-clients">거래처관리</div>
+        <div class="sb-sub-link" data-page="sales-items">품목등록</div>
+        <div class="sb-sub-link" data-page="sales-orders">수주관리</div>
+        <div class="sb-sub-link" data-page="sales-orders">출하관리</div>
+        <div class="sb-sub-link" data-page="sales-orders">매출관리</div>
+        <div class="sb-sub-link" data-page="sales-orders">견적관리</div>
+        <div class="sb-sub-link" data-page="sales-orders">CRM</div>
+      </div>
+    </div>
+
+    <div class="sb-item" id="menu-design">
+      <div class="sb-link" onclick="toggleMenu('menu-design')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></span>
+        <span class="sb-label">디자인팀</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="design-dtp">DTP 디자인</div>
+        <div class="sb-sub-link" data-page="design-emb">자수 디자인</div>
+      </div>
+    </div>
+
+    <div class="sb-item" id="menu-prod">
+      <div class="sb-link" onclick="toggleMenu('menu-prod')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M2 20h20M4 20V10l8-7 8 7v10"/><rect x="9" y="14" width="6" height="6"/></svg></span>
+        <span class="sb-label">생산관리</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="production-dtp">DTP</div>
+        <div class="sb-sub-link" data-page="production-emb">자수</div>
+        <div class="sb-sub-link" data-page="production-qlt">퀄팅</div>
+        <div class="sb-sub-link" data-page="production-dtp">원단가공</div>
+        <div class="sb-sub-link" data-page="production-dtp">품질검사</div>
+        <div class="sb-sub-link" data-page="production-dtp">생산실적</div>
+      </div>
+    </div>
+
+    <div class="sb-item" id="menu-inv">
+      <div class="sb-link" onclick="toggleMenu('menu-inv')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span>
+        <span class="sb-label">원단/재고</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="inventory">재고현황</div>
+        <div class="sb-sub-link" data-page="inventory">입출고</div>
+        <div class="sb-sub-link" data-page="inventory">원단마스터</div>
+        <div class="sb-sub-link" data-page="inventory">바코드</div>
+      </div>
+    </div>
+
+    <div class="sb-item">
+      <div class="sb-link" data-page="fabricHub">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg></span>
+        <span class="sb-label">FabricHub</span>
+      </div>
+    </div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">경영</div>
+
+    <div class="sb-item" id="menu-fin">
+      <div class="sb-link" onclick="toggleMenu('menu-fin')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></svg></span>
+        <span class="sb-label">재무관리</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="finance">자금현황</div>
+        <div class="sb-sub-link" data-page="finance">매출관리</div>
+        <div class="sb-sub-link" data-page="finance">세금계산서</div>
+        <div class="sb-sub-link" data-page="finance">회계관리</div>
+      </div>
+    </div>
+
+    <div class="sb-item" id="menu-hr">
+      <div class="sb-link" onclick="toggleMenu('menu-hr')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span>
+        <span class="sb-label">인사관리</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="hr">조직/사원관리</div>
+        <div class="sb-sub-link" data-page="hr">근태관리</div>
+        <div class="sb-sub-link" data-page="hr">급여관리</div>
+        <div class="sb-sub-link" data-page="hr">평가/교육</div>
+      </div>
+    </div>
+
+    <div class="sb-item" id="menu-pur">
+      <div class="sb-link" onclick="toggleMenu('menu-pur')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></span>
+        <span class="sb-label">구매관리</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="purchase">구매요청</div>
+        <div class="sb-sub-link" data-page="purchase">발주관리</div>
+        <div class="sb-sub-link" data-page="purchase">입고관리</div>
+      </div>
+    </div>
+
+    <div class="sb-item">
+      <div class="sb-link" data-page="chat">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+        <span class="sb-label">사내커뮤니케이션</span>
+      </div>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-item" id="menu-sys">
+      <div class="sb-link" onclick="toggleMenu('menu-sys')">
+        <span class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41"/></svg></span>
+        <span class="sb-label">시스템설정</span>
+        <span class="sb-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <div class="sb-sub">
+        <div class="sb-sub-link" data-page="system-users">사용자/권한</div>
+        <div class="sb-sub-link" data-page="system-users">메뉴관리</div>
+        <div class="sb-sub-link" data-page="system-users">로그관리</div>
+        <div class="sb-sub-link" data-page="system-users">백업</div>
+      </div>
+    </div>
+
+  </div><!-- /sb-nav -->
+
+  <!-- Footer -->
+  <div class="sb-footer">
+    <div class="sb-user" onclick="goPage('dashboard')">
+      <div class="sb-avatar" id="sb-avatar-init">김</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name" id="sb-user-name">김민수</div>
+        <div class="sb-user-dept" id="sb-user-dept">경영지원팀 · 대표</div>
+      </div>
+    </div>
+    <div class="sb-copy">© 2025 ARAM INDUSTRIES Co., Ltd.<br>All rights reserved.</div>
+  </div>
+</nav>
+
+<!-- 모바일 사이드바 오버레이 -->
+<div id="sb-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ══════════════════════════════════════
+     MAIN AREA
+══════════════════════════════════════ -->
+<div class="main-area">
+
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div class="tb-left">
+      <div class="tb-hamburger" onclick="toggleSidebar()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </div>
+      <div class="tb-breadcrumb" id="breadcrumb">
+        <span>홈</span>
+        <span class="tb-sep">›</span>
+        <span id="bc-current">대시보드</span>
+      </div>
+    </div>
+    <div class="tb-search" onclick="if(window.ARAM_UI) ARAM_UI.openSearch()" style="cursor:pointer">
+      <span class="tb-search-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+      <input type="text" placeholder="전체 메뉴, 문서, 거래처 검색… (Ctrl+K)" readonly style="cursor:pointer">
+    </div>
+    <div class="tb-right">
+      <!-- 다크모드 토글 -->
+      <button id="theme-toggle" title="다크/라이트 모드 전환 (Alt+T)" onclick="toggleTheme()" aria-label="테마 전환">
+        <!-- 라이트 모드에서는 moon 아이콘 표시 -->
+        <svg id="theme-icon-moon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="17" height="17">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+        <!-- 다크 모드에서는 sun 아이콘 표시 -->
+        <svg id="theme-icon-sun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="17" height="17" style="display:none">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+      <div class="tb-icon-btn" title="알림" onclick="if(window.ARAM_UI) ARAM_UI.toggleNoti()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="tb-badge">3</span>
+      </div>
+      <div class="tb-icon-btn" title="도움말" onclick="if(window.ARAM_UI) ARAM_UI.Toast.info('도움말 페이지는 준비 중입니다.')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+      </div>
+      <div class="tb-user" onclick="if(window.ARAM_UI) ARAM_UI.toggleUserDropdown()">
+        <div class="tb-user-avatar" id="tb-avatar">김</div>
+        <div class="tb-user-info">
+          <div class="tb-user-name" id="tb-user-name">김민수</div>
+          <div class="tb-user-role" id="tb-user-role">/ 대표</div>
+        </div>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14" style="color:#9ba8c0"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGES CONTAINER -->
+  <div class="pages" id="pages">
+
+    <!-- ★ 각 페이지는 js/pages.js에서 동적으로 렌더링 -->
+    <div class="page active" id="page-dashboard"></div>
+    <div class="page" id="page-menu"></div>
+    <div class="page" id="page-sales-clients"></div>
+    <div class="page" id="page-sales-items"></div>
+    <div class="page" id="page-sales-orders"></div>
+    <div class="page" id="page-sales-order-detail"></div>
+    <div class="page" id="page-design-dtp"></div>
+    <div class="page" id="page-design-emb"></div>
+    <div class="page" id="page-production-dtp"></div>
+    <div class="page" id="page-production-emb"></div>
+    <div class="page" id="page-production-qlt"></div>
+    <div class="page" id="page-inventory"></div>
+    <div class="page" id="page-fabricHub"></div>
+    <div class="page" id="page-finance"></div>
+    <div class="page" id="page-hr"></div>
+    <div class="page" id="page-purchase"></div>
+    <div class="page" id="page-chat" style="padding:0;height:calc(100vh - 64px)"></div>
+    <div class="page" id="page-system-users"></div>
+
+  </div><!-- /pages -->
+
+</div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- Scripts -->
+<script src="js/data.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

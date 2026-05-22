@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARAM INDUSTRY — 통합포털 로그인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* ── LEFT PANEL ── */
+    .login-left {
+      width: 44%;
+      min-width: 380px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 56px 64px;
+      background: #fff;
+      z-index: 2;
+    }
+
+    .brand { margin-bottom: 60px; }
+    .brand-logo {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: #1a1f35;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .brand-sub-en {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 5px;
+      color: #1a1f35;
+      margin-bottom: 12px;
+    }
+    .brand-sub-kr {
+      font-size: 14px;
+      color: #6b7a99;
+      font-weight: 400;
+    }
+
+    .login-form { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 380px; }
+
+    .form-group { margin-bottom: 24px; }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a2035;
+      margin-bottom: 8px;
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrap input {
+      width: 100%;
+      height: 52px;
+      border: 1.5px solid #e5e9f0;
+      border-radius: 10px;
+      padding: 0 44px 0 18px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a2035;
+      background: #fafbfc;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-wrap input::placeholder { color: #b0b8cc; }
+    .input-wrap input:focus {
+      border-color: #4361ee;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(67,97,238,.1);
+    }
+    .input-wrap .input-icon {
+      position: absolute;
+      right: 16px;
+      color: #b0b8cc;
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .btn-login {
+      width: 100%;
+      height: 54px;
+      background: #4361ee;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: 4px;
+    }
+    .btn-login:hover { background: #3451d1; }
+    .btn-login:active { transform: scale(.99); }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: #b0b8cc;
+      font-size: 13px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e9f0;
+    }
+
+    .login-links {
+      text-align: center;
+      font-size: 14px;
+      color: #8896a4;
+    }
+    .login-links a {
+      color: #4361ee;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .login-links a:hover { text-decoration: underline; }
+    .login-links .sep { margin: 0 12px; color: #e0e4ee; }
+
+    .powered-by {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #b0b8cc;
+      font-size: 12px;
+    }
+    .powered-by svg { width: 18px; height: 18px; fill: #b0b8cc; }
+
+    /* ── RIGHT PANEL ── */
+    .login-right {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px 0 0 24px;
+      margin: 16px 16px 16px 0;
+    }
+    .fabric-bg {
+      position: absolute;
+      inset: 0;
+      /* 민트 그린 + 라벤더 원단 사진 느낌 */
+      background:
+        /* 민트 그린 하이라이트 (왼쪽 상단) */
+        radial-gradient(ellipse at 18% 18%, rgba(230,248,238,.95) 0%, transparent 38%),
+        /* 민트 그린 주 색상 (좌측 중앙) */
+        radial-gradient(ellipse at 30% 52%, rgba(162,215,190,.92) 0%, rgba(130,195,165,.85) 45%, transparent 70%),
+        /* 원단 접힘 — 그림자 */
+        radial-gradient(ellipse at 52% 48%, rgba(95,150,120,.55) 0%, transparent 35%),
+        /* 민트 하단 */
+        radial-gradient(ellipse at 22% 85%, rgba(155,210,178,.75) 0%, transparent 45%),
+        /* 라벤더 하이라이트 (우측 상단) */
+        radial-gradient(ellipse at 88% 15%, rgba(230,222,248,.97) 0%, transparent 35%),
+        /* 라벤더 주 색상 (우측) */
+        radial-gradient(ellipse at 78% 50%, rgba(196,178,232,.92) 0%, rgba(175,155,218,.85) 40%, transparent 70%),
+        /* 라벤더 하단 */
+        radial-gradient(ellipse at 82% 88%, rgba(188,168,228,.8) 0%, transparent 40%),
+        /* 중앙 경계 음영 */
+        radial-gradient(ellipse at 55% 60%, rgba(110,130,150,.35) 0%, transparent 30%),
+        /* 베이스 그라데이션 */
+        linear-gradient(150deg, #a8d8bc 0%, #b4c8d8 42%, #baaad4 70%, #c8b8e0 100%);
+    }
+    .fabric-texture {
+      position: absolute;
+      inset: 0;
+      /* 실크/새틴 원단 광택 효과 */
+      background-image:
+        repeating-linear-gradient(
+          30deg,
+          transparent,
+          transparent 3px,
+          rgba(255,255,255,.045) 3px,
+          rgba(255,255,255,.045) 6px
+        ),
+        repeating-linear-gradient(
+          -30deg,
+          transparent,
+          transparent 3px,
+          rgba(255,255,255,.03) 3px,
+          rgba(255,255,255,.03) 6px
+        );
+    }
+    /* 원단 주름/드레이프 형상 */
+    .fabric-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(50px);
+    }
+    .fabric-shape-1 {
+      width: 560px; height: 620px;
+      background: radial-gradient(ellipse, rgba(148,208,178,.65) 0%, transparent 65%);
+      top: -80px; left: -120px;
+    }
+    .fabric-shape-2 {
+      width: 460px; height: 700px;
+      background: radial-gradient(ellipse, rgba(185,162,228,.62) 0%, transparent 65%);
+      top: -50px; right: -80px;
+    }
+    .fabric-shape-3 {
+      width: 380px; height: 420px;
+      background: radial-gradient(ellipse, rgba(172,218,192,.55) 0%, transparent 60%);
+      bottom: -60px; left: 60px;
+    }
+    .fabric-shape-4 {
+      width: 320px; height: 360px;
+      background: radial-gradient(ellipse, rgba(198,178,235,.58) 0%, transparent 60%);
+      bottom: -40px; right: 40px;
+    }
+    /* 원단 광택 스윕 */
+    .fabric-sheen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        rgba(255,255,255,.12) 30%,
+        rgba(255,255,255,.22) 45%,
+        rgba(255,255,255,.08) 55%,
+        transparent 75%
+      );
+    }
+
+    /* Error message */
+    .error-msg {
+      background: #fff0f0;
+      color: #e53e3e;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* Loading state */
+    .btn-login.loading {
+      opacity: .8;
+      pointer-events: none;
+    }
+    .btn-login.loading::after {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    /* 비밀번호 토글 */
+    .input-icon.toggle-pw {
+      pointer-events: all;
+      cursor: pointer;
+      color: #b0b8cc;
+      transition: color .15s;
+    }
+    .input-icon.toggle-pw:hover { color: #4361ee; }
+
+    /* 기억하기 / 빠른 로그인 */
+    .form-extras {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13.5px;
+      color: #6b7a99;
+      cursor: pointer;
+      user-select: none;
+    }
+    .remember-me input { accent-color: #4361ee; width: 15px; height: 15px; cursor: pointer; }
+    .forgot-link { font-size: 13.5px; color: #4361ee; text-decoration: none; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* 데모 계정 빠른 로그인 */
+    .demo-section { margin-top: 22px; }
+    .demo-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 12.5px;
+      color: #b0b8cc;
+    }
+    .demo-label::before, .demo-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e9ecf2;
+    }
+    .demo-btns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .demo-btn {
+      padding: 9px 6px;
+      border: 1.5px solid #e5e9f0;
+      border-radius: 8px;
+      background: #fafbfc;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color .15s, background .15s, transform .1s;
+      text-align: center;
+    }
+    .demo-btn:hover {
+      border-color: #4361ee;
+      background: #eff2ff;
+      transform: translateY(-1px);
+    }
+    .demo-btn:active { transform: translateY(0); }
+    .demo-btn-role {
+      font-size: 11px;
+      color: #9ba8c0;
+      margin-bottom: 3px;
+    }
+    .demo-btn-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a2035;
+    }
+
+    /* 우측 패널 오버레이 (텍스트 없음 — 원단 이미지만 표시) */
+    .panel-overlay { display: none; }
+
+    @media (max-width: 768px) {
+      .login-left { width: 100%; min-width: unset; padding: 40px 32px; }
+      .login-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT: Login Form -->
+  <div class="login-left">
+    <div class="brand">
+      <div class="brand-logo">ARAM</div>
+      <div class="brand-sub-en">INDUSTRY</div>
+      <div class="brand-sub-kr">(주)아람인더스트 통합포털</div>
+    </div>
+
+    <div class="login-form">
+      <div class="error-msg" id="errorMsg">이메일 또는 비밀번호를 확인해주세요.</div>
+
+      <div class="form-group">
+        <label for="email">이메일</label>
+        <div class="input-wrap">
+          <input type="email" id="email" placeholder="이메일을 입력하세요" autocomplete="email">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">비밀번호</label>
+        <div class="input-wrap">
+          <input type="password" id="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+          <span class="input-icon toggle-pw" id="pwToggle" onclick="togglePassword()" title="비밀번호 표시/숨기기">
+            <svg id="pwEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="handleLogin()">로그인</button>
+
+      <div class="divider">또는</div>
+
+      <div class="login-links">
+        <a href="#">비밀번호 찾기</a>
+        <span class="sep">|</span>
+        <a href="#">회원가입 문의</a>
+      </div>
+    </div>
+
+    <div class="powered-by">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+      </svg>
+      Powered by ARAM Cloud
+    </div>
+  </div>
+
+  <!-- RIGHT: Fabric Background -->
+  <div class="login-right">
+    <div class="fabric-bg">
+      <div class="fabric-shape fabric-shape-1"></div>
+      <div class="fabric-shape fabric-shape-2"></div>
+      <div class="fabric-shape fabric-shape-3"></div>
+      <div class="fabric-shape fabric-shape-4"></div>
+      <div class="fabric-texture"></div>
+      <div class="fabric-sheen"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ── 데모 계정 ── */
+    const DEMO_USERS = [
+      { email: 'admin@aram.co.kr', password: 'admin1234', name: '김민수', role: '대표',  dept: '경영지원팀' },
+      { email: 'sales@aram.co.kr', password: 'sales1234', name: '김영업', role: '과장',  dept: '영업1팀' },
+      { email: 'prod@aram.co.kr',  password: 'prod1234',  name: '이생산', role: '팀장',  dept: '생산팀' },
+    ];
+
+    /* ── 기억하기 복원 (rememberMe 요소 유무 체크) ── */
+    const saved = localStorage.getItem('aram_remember');
+    if (saved) {
+      try {
+        const r = JSON.parse(saved);
+        document.getElementById('email').value = r.email || '';
+        const rmEl = document.getElementById('rememberMe');
+        if (rmEl) rmEl.checked = true;
+      } catch(_) {}
+    }
+
+    /* ── Enter 키 ── */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    /* ── 비밀번호 표시/숨기기 ── */
+    function togglePassword() {
+      const pw  = document.getElementById('password');
+      const ico = document.getElementById('pwEyeIcon');
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      ico.innerHTML = show
+        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>`;
+    }
+
+    /* ── 빠른 데모 로그인 ── */
+    function quickLogin(email, password) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = password;
+      handleLogin();
+    }
+
+    /* ── 로그인 처리 ── */
+    function handleLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const rmEl     = document.getElementById('rememberMe');
+      const remember = rmEl ? rmEl.checked : false;
+      const btn      = document.getElementById('loginBtn');
+      const errMsg   = document.getElementById('errorMsg');
+
+      errMsg.classList.remove('show');
+
+      if (!email || !password) {
+        errMsg.textContent = '이메일과 비밀번호를 입력해주세요.';
+        errMsg.classList.add('show');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.textContent = '로그인 중';
+
+      setTimeout(() => {
+        const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+
+        if (user) {
+          /* 기억하기 처리 */
+          if (remember) {
+            localStorage.setItem('aram_remember', JSON.stringify({ email }));
+          } else {
+            localStorage.removeItem('aram_remember');
+          }
+          sessionStorage.setItem('aram_user', JSON.stringify(user));
+          sessionStorage.setItem('aram_logged_in', 'true');
+          window.location.href = 'app.html';
+        } else {
+          btn.classList.remove('loading');
+          btn.textContent = '로그인';
+          errMsg.textContent = '이메일 또는 비밀번호를 확인해주세요.';
+          errMsg.classList.add('show');
+          /* 비밀번호 필드 진동 효과 */
+          const pw = document.getElementById('password');
+          pw.style.animation = 'shake .35s ease';
+          pw.value = '';
+          pw.focus();
+          setTimeout(() => pw.style.animation = '', 400);
+        }
+      }, 700);
+    }
+
+    /* ── 이미 로그인 상태면 바로 이동 ── */
+    if (sessionStorage.getItem('aram_logged_in')) {
+      window.location.href = 'app.html';
+    }
+
+    console.log('%c[ARAM ERP Demo]', 'color:#4361ee;font-weight:bold;font-size:14px');
+    console.log('테스트 계정: admin@aram.co.kr / admin1234');
+  </script>
+</body>
+</html>

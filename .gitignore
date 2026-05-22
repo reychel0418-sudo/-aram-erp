@@ -1,0 +1,11 @@
+﻿node_modules/
+.env
+.env.local
+dist/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+git_setup.ps1
+github_setup.bat
+Tokens

@@ -1,0 +1,18 @@
+{
+  "name": "aram-erp-portal",
+  "version": "3.0.0",
+  "description": "(주)아람인더스트리 통합포털 ERP",
+  "scripts": {
+    "dev":   "NODE_ENV=development node server.js",
+    "prod":  "NODE_ENV=production  node server-prod.js",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "compression": "^1.7.4",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
