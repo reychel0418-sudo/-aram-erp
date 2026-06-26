@@ -1,16 +1,17 @@
 # ARAM ERP - GitHub Push Script
-# GitHub Username: reychel0418
-# Repository: https://github.com/reychel0418/aram-erp
+# GitHub Username: reychel0418-sudo
+# Repository: https://github.com/reychel0418-sudo/-aram-erp
 
 $gitPath     = "C:\Program Files\Git\bin\git.exe"
-$githubUser  = "reychel0418"
-$repoUrl     = "https://github.com/$githubUser/aram-erp.git"
+$githubUser  = "reychel0418-sudo"
+$repoName    = "-aram-erp"
+$repoUrl     = "https://github.com/$githubUser/$repoName.git"
 
 if (-not (Test-Path $gitPath)) { $gitPath = "git" }
 
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  ARAM ERP - GitHub Upload" -ForegroundColor Cyan
-Write-Host "  https://github.com/$githubUser/aram-erp" -ForegroundColor Cyan
+Write-Host "  https://github.com/$githubUser/$repoName" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -62,7 +63,7 @@ Write-Host ""
 if ($LASTEXITCODE -eq 0) {
     Write-Host "============================================" -ForegroundColor Green
     Write-Host "  SUCCESS! Code is now on GitHub!" -ForegroundColor Green
-    Write-Host "  URL: https://github.com/$githubUser/aram-erp" -ForegroundColor Green
+    Write-Host "  URL: https://github.com/$githubUser/$repoName" -ForegroundColor Green
     Write-Host "============================================" -ForegroundColor Green
 } else {
     Write-Host "============================================" -ForegroundColor Red
