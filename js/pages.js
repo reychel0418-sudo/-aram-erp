@@ -1117,7 +1117,7 @@ window.ARAM_PAGES = {
     window._itmAdvCriteria  = window._itmAdvCriteria || {};
     var PAGE_SZ = 20;
     var db = window._itemsDB;
-    var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981'};
+    var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981','자수':'#8b5cf6','퀼팅':'#ec4899','DTP':'#4361ee','폴리DTP':'#0ea5e9','DTP아람원FA':'#6366f1','폴리아람FA':'#14b8a6','자수아람FA':'#a855f7','패브릭허브':'#f59e0b'};
 
     /* KPI 계산 */
     var total   = db.length;
@@ -1157,6 +1157,7 @@ window.ARAM_PAGES = {
         +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:600;color:'+stColor+'">'+stTxt+'</td>'
         +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted)">'+it.date+'</td>'
         +'<td style="text-align:center"><span style="background:'+sc+';color:#fff;border-radius:4px;padding:2px 10px;font-size:12px;font-weight:700">'+it.status+'</span></td>'
+        +'<td onclick="_openItemDetail(\''+it.code+'\')" style="text-align:center;font-size:11px">'+(window._aramExpiryStatus?(function(s){return '<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-weight:700;color:#fff;background:'+s.color+'">'+s.label+'</span>';})(window._aramExpiryStatus(it.linkExpiry)):'')+(it.linkExpiry?'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(it.linkExpiry||'').replace('T',' ')+'</div>':'')+'</td>'
         +'<td style="text-align:center">'
           +'<button style="padding:3px 9px;font-size:11px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:4px;cursor:pointer;margin-right:3px" onclick="event.stopPropagation();_openItemDetail(\''+it.code+'\')">상세</button>'
           +'<button style="padding:3px 9px;font-size:11px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:4px;cursor:pointer" onclick="event.stopPropagation();_openItemDetail(\''+it.code+'\')">수정</button>'
@@ -1247,11 +1248,15 @@ window.ARAM_PAGES = {
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
       <select id="item-cat-filter" onchange="_itmSearch()"
         style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:6px;background:var(--bg);color:var(--txt);font-size:13px">
-        <option value="">전체 카테고리</option>
-        <option value="DTP 원단">DTP 원단</option>
-        <option value="자수 원단">자수 원단</option>
-        <option value="부자재">부자재</option>
-        <option value="완제품">완제품</option>
+        <option value="">전체 사업구분</option>
+        <option value="자수">자수</option>
+        <option value="퀼팅">퀼팅</option>
+        <option value="DTP">DTP</option>
+        <option value="폴리DTP">폴리DTP</option>
+        <option value="DTP아람원FA">DTP아람원FA</option>
+        <option value="폴리아람FA">폴리아람FA</option>
+        <option value="자수아람FA">자수아람FA</option>
+        <option value="패브릭허브">패브릭허브</option>
       </select>
       <select id="item-status-filter" onchange="_itmSearch()"
         style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:6px;background:var(--bg);color:var(--txt);font-size:13px">
@@ -1259,6 +1264,9 @@ window.ARAM_PAGES = {
         <option value="활성">활성</option>
         <option value="단종">단종</option>
       </select>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--txt);font-weight:600">
+        <input type="checkbox" id="item-exp-only" onchange="_itmSearch()" style="cursor:pointer">⚠️ 만료임박/만료만 보기
+      </label>
       <span style="font-size:12px;color:var(--muted);margin-left:auto" id="item-count-badge">${db.length}건</span>
     </div>
 
@@ -1283,6 +1291,7 @@ window.ARAM_PAGES = {
             <th style="padding:9px 10px;text-align:left;font-size:12px;font-weight:700">재고</th>
             <th style="padding:9px 10px;text-align:left;font-size:12px;font-weight:700">등록일</th>
             <th style="padding:9px 10px;text-align:center;font-size:12px;font-weight:700">상태</th>
+            <th style="padding:9px 10px;text-align:center;font-size:12px;font-weight:700">유효기간</th>
             <th style="padding:9px 10px;text-align:center;font-size:12px;font-weight:700">관리</th>
           </tr>
         </thead>
@@ -8256,6 +8265,75 @@ window._aramAddrSearch = function(zipId, addrId, detailId){
   document.head.appendChild(s);
 };
 
+/* ═══════════════════════════════════════════════════
+   🔗 링크주소 열기 / 미리보기 (품목등록 등 공용)
+═══════════════════════════════════════════════════ */
+function _aramNormalizeUrl(inputId){
+  var el = document.getElementById(inputId);
+  var u = el ? (el.value||'').trim() : '';
+  if(!u){ if(window.ARAM_UI) ARAM_UI.Toast.info('링크주소를 먼저 입력하세요.'); return ''; }
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  return u;
+}
+/* 새 탭에서 열기 */
+window._aramLinkOpen = function(inputId){
+  var u = _aramNormalizeUrl(inputId);
+  if(u) window.open(u, '_blank', 'noopener');
+};
+/* 화면 안 미리보기 (iframe — 차단 사이트는 '새 탭' 안내) */
+window._aramLinkPreview = function(inputId){
+  var u = _aramNormalizeUrl(inputId);
+  if(!u) return;
+  var old = document.getElementById('aram-link-preview-ov'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'aram-link-preview-ov';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML =
+    '<div style="background:#fff;border-radius:12px;width:980px;max-width:96vw;height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.3)">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:#1e2b4a;color:#fff;gap:10px">'
+      +'<span style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🔗 '+u+'</span>'
+      +'<div style="display:flex;gap:8px;flex-shrink:0">'
+        +'<button onclick="window.open(\''+u+'\',\'_blank\',\'noopener\')" style="background:#4361ee;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">새 탭에서 열기</button>'
+        +'<button onclick="var o=document.getElementById(\'aram-link-preview-ov\');if(o)o.remove();" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer">✕</button>'
+      +'</div></div>'
+    +'<div style="flex:1;background:#f1f5f9;position:relative">'
+      +'<iframe src="'+u+'" style="width:100%;height:100%;border:none" referrerpolicy="no-referrer"></iframe>'
+      +'<div style="position:absolute;bottom:0;left:0;right:0;padding:6px 12px;background:rgba(248,250,252,.95);border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center">※ 일부 사이트(파일호스팅 등)는 보안정책상 미리보기가 안 보일 수 있습니다 — 그럴 땐 "새 탭에서 열기"를 이용하세요.</div>'
+    +'</div></div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
+
+/* ═══════════════════════════════════════════════════
+   ⏰ 링크 유효기간 — 자동생성(+1년/+6개월) & 만료상태 계산
+═══════════════════════════════════════════════════ */
+function _aramFmtDT(d){
+  function p(x){ return String(x).padStart(2,'0'); }
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+/* 시작시간 기준 +1년/+6개월 → 만료시간 자동 입력 (시작 비었으면 지금 시각) */
+window._aramLinkAutoExpiry = function(startId, expiryId, kind){
+  var sEl = document.getElementById(startId), eEl = document.getElementById(expiryId);
+  if(!sEl || !eEl) return;
+  var s = (sEl.value||'').trim();
+  if(!s){ s = _aramFmtDT(new Date()); sEl.value = s; }
+  var d = new Date(s);
+  if(isNaN(d.getTime())){ if(window.ARAM_UI) ARAM_UI.Toast.error('시작시간 형식을 확인하세요.'); return; }
+  if(kind==='1y') d.setFullYear(d.getFullYear()+1); else d.setMonth(d.getMonth()+6);
+  eEl.value = _aramFmtDT(d);
+  if(window.ARAM_UI) ARAM_UI.Toast.success('만료시간 자동설정 → '+eEl.value.replace('T',' '));
+};
+/* 만료상태: 유효(초록)/임박 D-n(주황)/만료(빨강)/없음 */
+window._aramExpiryStatus = function(expiryStr){
+  if(!expiryStr) return { key:'none', label:'—', color:'#9ca3af' };
+  var exp = new Date(expiryStr);
+  if(isNaN(exp.getTime())) return { key:'none', label:'—', color:'#9ca3af' };
+  var days = Math.ceil((exp - new Date())/86400000);
+  if(days < 0)  return { key:'expired', label:'만료',     color:'#ef4444' };
+  if(days <= 7) return { key:'soon',    label:'D-'+days,  color:'#f59e0b' };
+  return { key:'valid', label:'유효', color:'#10b981' };
+};
+
 /* ── 공정단가 행 추가/삭제 ── */
 window._addGongjeongRow = function() {
   var tbody = document.getElementById('gongjeong-tbody');
@@ -9183,8 +9261,7 @@ window._saveEmbItemLink = function() {
 
   /* _itemsDB에 추가 */
   if (!window._itemsDB) window._itemsDB = [];
-  var seq = String(window._itemsDB.length + 1).padStart(4, '0');
-  var newCode = 'ITM-' + seq;
+  var newCode = window._nextItemCode();
   window._itemsDB.unshift({
     code: newCode,
     name: name,
@@ -9198,6 +9275,7 @@ window._saveEmbItemLink = function() {
     width: '-',
     memo: 'WO-EMB-2026-0156 자동 연결 등록',
   });
+  if(window._saveItems) window._saveItems();  /* 💾 자동등록 즉시 저장 */
 
   /* 오버레이 닫기 */
   var ov = document.getElementById('emb-item-link-overlay');
@@ -9251,6 +9329,41 @@ window._itemsDB = [
   {code:'ITM-0011', name:'아이코닉 프린트 원단', cat:'DTP 원단',  unit:'m',  price:'3,400',  stock:'260', date:'2026-03-10', status:'활성', spec:'60수 폴리',    width:'150cm', memo:''},
   {code:'ITM-0012', name:'퀄팅 충전재',          cat:'부자재',    unit:'kg',  price:'5,500',  stock:'0',   date:'2026-03-15', status:'단종', spec:'100g/㎡',      width:'-',   memo:'단종 처리.'},
 ];
+
+/* ═══════════════════════════════════════════════════
+   💾 품목 데이터 저장/불러오기 (localStorage)
+═══════════════════════════════════════════════════ */
+/* (1) 시작 시: 저장된 품목이 있으면 기본 데이터 대신 불러오기 */
+(function loadSavedItems(){
+  try {
+    var saved = localStorage.getItem('aram_items');
+    if (saved) {
+      var arr = JSON.parse(saved);
+      if (Array.isArray(arr) && arr.length) window._itemsDB = arr;
+    }
+  } catch(e) { console.warn('[품목] 불러오기 실패:', e); }
+})();
+
+/* (2) 저장 함수 */
+window._saveItems = function(){
+  try {
+    localStorage.setItem('aram_items', JSON.stringify(window._itemsDB || []));
+  } catch(e) { console.warn('[품목] 저장 실패:', e); }
+};
+
+/* (3) 안전한 품목코드 생성 (기존 최대번호+1, 중복 회피 — 삭제 후 재등록 중복 방지) */
+window._nextItemCode = function(){
+  var db = window._itemsDB || [];
+  var maxN = 0;
+  db.forEach(function(x){
+    var m = (x.code||'').match(/(\d+)\s*$/);
+    if(m){ var n=parseInt(m[1],10); if(n>maxN) maxN=n; }
+  });
+  var n = maxN + 1;
+  var code = 'ITM-' + String(n).padStart(4,'0');
+  while(db.some(function(x){ return x.code===code; })){ n++; code='ITM-'+String(n).padStart(4,'0'); }
+  return code;
+};
 
 /* ───────────── 품목 검색 필터 ───────────── */
 window._filterItems = function(q) {
@@ -9306,7 +9419,7 @@ window._openItemDetail = function(code) {
       +'<select id="_idf_'+id+'" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'+o+'</select></div>';
   }
 
-  var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981'};
+  var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981','자수':'#8b5cf6','퀼팅':'#ec4899','DTP':'#4361ee','폴리DTP':'#0ea5e9','DTP아람원FA':'#6366f1','폴리아람FA':'#14b8a6','자수아람FA':'#a855f7','패브릭허브':'#f59e0b'};
   var cc = catColors[it.cat]||'#607d8b';
   function statusColor(s){ return s==='활성'?'#10b981':'#9ca3af'; }
 
@@ -9317,8 +9430,21 @@ window._openItemDetail = function(code) {
       +'<span style="font-size:13px;font-weight:700;color:var(--txt)">'+ea(it.code)+'</span>'
     +'</div>'
     + inRow('품목명','name',it.name,'text',true)
-    + selRow('카테고리','cat',it.cat,['DTP 원단','자수 원단','부자재','완제품'])
-    + selRow('단위','unit',it.unit,['m','ea','set','box','kg'])
+    + selRow('사업구분','cat',it.cat,['자수','퀼팅','DTP','폴리DTP','DTP아람원FA','폴리아람FA','자수아람FA','패브릭허브'])
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">품목유형 <span style="color:#ef4444">*</span></label>'
+      +'<select id="_idf_itemType" onchange="(function(v){var b=document.getElementById(\'_idf_fabricInfo\');if(b)b.style.display=(v===\'원단\'?\'\':\'none\');})(this.value)" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'
+        +'<option value=""'+(!it.itemType?' selected':'')+'>선택</option>'
+        +['원단','원재료','부자재','가공','완제품','제품'].map(function(x){return '<option'+(x===it.itemType?' selected':'')+'>'+x+'</option>';}).join('')
+      +'</select></div>'
+    + '<div id="_idf_fabricInfo" style="display:'+(it.itemType==='원단'?'block':'none')+'">'
+      + secHead('원단 정보 (롯트·컬러·위치)')
+      + inRow('롯트/롤번호','lot',it.lot,'text',false)
+      + inRow('컬러','colorId',it.colorId,'text',false)
+      + inRow('보관위치','location',it.location,'text',false)
+      + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_idf_inDate" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">입고날짜</label><input id="_idf_inDate" type="date" value="'+ea(it.inDate||'')+'" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '</div>'
+    + selRow('단위','unit',it.unit,['m','ea','set','box','kg','야드(Y)','절(R)','중량(K)','봉'])
     + inRow('거래처','client',it.client,'text',false)
     + secHead('단가 정보')
     + inRow('입고단가','inPrice',it.inPrice||it.price,'number',false)
@@ -9329,9 +9455,16 @@ window._openItemDetail = function(code) {
     + secHead('링크 / 이미지')
     + '<div style="display:flex;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--bdr)">'
       +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0;padding-top:6px">링크주소</label>'
-      +'<div style="flex:1"><input id="_idf_link" type="url" value="'+ea(it.link||'')+'" placeholder="https://..." '
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:6px"><input id="_idf_link" type="url" value="'+ea(it.link||'')+'" placeholder="https://..." '
         +'style="width:100%;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none;box-sizing:border-box" '
-        +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'"></div></div>'
+        +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+        +'<div style="display:flex;gap:6px">'
+          +'<button type="button" onclick="_aramLinkOpen(\'_idf_link\')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer">🔗 열기</button>'
+          +'<button type="button" onclick="_aramLinkPreview(\'_idf_link\')" style="padding:4px 12px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:5px;font-size:11.5px;cursor:pointer">👁 미리보기</button>'
+        +'</div></div></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_idf_linkStart" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">링크 시작시간</label><input id="_idf_linkStart" type="datetime-local" value="'+ea(it.linkStart||'')+'" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_idf_linkExpiry" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">링크 만료시간</label><input id="_idf_linkExpiry" type="datetime-local" value="'+ea(it.linkExpiry||'')+'" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">유효기간 자동</label><div style="display:flex;gap:6px;align-items:center"><button type="button" onclick="_aramLinkAutoExpiry(\'_idf_linkStart\',\'_idf_linkExpiry\',\'1y\')" style="padding:4px 14px;background:#4361ee;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer">+1년</button><button type="button" onclick="_aramLinkAutoExpiry(\'_idf_linkStart\',\'_idf_linkExpiry\',\'6m\')" style="padding:4px 14px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:5px;font-size:12px;cursor:pointer">+6개월</button><span style="font-size:11px;color:var(--muted)">시작시간 기준</span></div></div>'
     + '<div style="display:flex;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--bdr)">'
       +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0;padding-top:6px">이미지 URL</label>'
       +'<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
@@ -9425,6 +9558,7 @@ window._openItemDetail = function(code) {
 
   function applyDb(vals){
     Object.assign(window._itemsDB[dbIdx], vals);
+    if(window._saveItems) window._saveItems();  /* 💾 수정 즉시 저장 */
     it = window._itemsDB[dbIdx];
     _orig = JSON.parse(JSON.stringify(it));
     var sn=document.getElementById('_idf_subname'); if(sn) sn.textContent=it.name;
@@ -9451,6 +9585,13 @@ window._openItemDetail = function(code) {
       spec:     gv('spec').trim(),
       link:     gv('link').trim(),
       imgUrl:   gv('imgUrl').trim(),
+      itemType: gv('itemType'),
+      lot:      gv('lot').trim(),
+      colorId:  gv('colorId').trim(),
+      location: gv('location').trim(),
+      inDate:   gv('inDate'),
+      linkStart:  gv('linkStart'),
+      linkExpiry: gv('linkExpiry'),
       memo:     (document.getElementById('_idf_memo')||{}).value||''
     });
     UI.Toast.success('저장되었습니다. ['+it.code+'] '+it.name);
@@ -9469,7 +9610,7 @@ window._openItemDetail = function(code) {
   document.getElementById('_idf_savenew').onclick  = function(){ saveMenu.style.display='none'; if(doSave(false)){ setTimeout(function(){ window._openItemRegModal(); },150); } };
 
   document.getElementById('_idf_copy').onclick = function(){
-    var newCode = 'ITM-' + String((window._itemsDB||[]).length + 1).padStart(4,'0');
+    var newCode = window._nextItemCode();
     var newItem = JSON.parse(JSON.stringify(it)); newItem.code=newCode; newItem.name=it.name+' (복사)';
     (window._itemsDB||[]).push(newItem);
     if(window._itmRerender) window._itmRerender();
@@ -9558,8 +9699,20 @@ window._openItemRegModal = function() {
   var formHtml = ''
     + secHead('기본 정보')
     + inRow('품목명','name','품목명을 입력하세요','text',true)
-    + selRow('카테고리','cat',['선택','DTP 원단','자수 원단','부자재','완제품'],true)
-    + selRow('단위','unit',['선택','m','ea','set','box','kg'],true)
+    + selRow('사업구분','cat',['선택','자수','퀼팅','DTP','폴리DTP','DTP아람원FA','폴리아람FA','자수아람FA','패브릭허브'],true)
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">품목유형 <span style="color:#ef4444">*</span></label>'
+      +'<select id="_irm_itemType" onchange="(function(v){var b=document.getElementById(\'_irm_fabricInfo\');if(b)b.style.display=(v===\'원단\'?\'\':\'none\');})(this.value)" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'
+        +'<option value="">선택</option><option>원단</option><option>원재료</option><option>부자재</option><option>가공</option><option>완제품</option><option>제품</option>'
+      +'</select></div>'
+    + '<div id="_irm_fabricInfo" style="display:none">'
+      + secHead('원단 정보 (롯트·컬러·위치)')
+      + inRow('롯트/롤번호','lot','예: #3, 10032','text',false)
+      + inRow('컬러','colorId','예: 5, #301','text',false)
+      + inRow('보관위치','location','예: A동 3번 랙','text',false)
+      + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_irm_inDate" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">입고날짜</label><input id="_irm_inDate" type="date" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '</div>'
+    + selRow('단위','unit',['선택','m','ea','set','box','kg','야드(Y)','절(R)','중량(K)','봉'],true)
     + inRow('거래처','client','관련 거래처명','text',false)
     + secHead('단가 정보')
     + inRow('입고단가','inPrice','예: 3200','number',false)
@@ -9574,7 +9727,14 @@ window._openItemRegModal = function() {
         +'<input id="_irm_link" type="url" placeholder="https://example.com" '
         +'style="width:100%;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none;box-sizing:border-box" '
         +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+        +'<div style="display:flex;gap:6px">'
+          +'<button type="button" onclick="_aramLinkOpen(\'_irm_link\')" style="padding:4px 12px;background:#4361ee;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer">🔗 열기</button>'
+          +'<button type="button" onclick="_aramLinkPreview(\'_irm_link\')" style="padding:4px 12px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:5px;font-size:11.5px;cursor:pointer">👁 미리보기</button>'
+        +'</div>'
       +'</div></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_irm_linkStart" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">링크 시작시간</label><input id="_irm_linkStart" type="datetime-local" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_irm_linkExpiry" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">링크 만료시간</label><input id="_irm_linkExpiry" type="datetime-local" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">유효기간 자동</label><div style="display:flex;gap:6px;align-items:center"><button type="button" onclick="_aramLinkAutoExpiry(\'_irm_linkStart\',\'_irm_linkExpiry\',\'1y\')" style="padding:4px 14px;background:#4361ee;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer">+1년</button><button type="button" onclick="_aramLinkAutoExpiry(\'_irm_linkStart\',\'_irm_linkExpiry\',\'6m\')" style="padding:4px 14px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:5px;font-size:12px;cursor:pointer">+6개월</button><span style="font-size:11px;color:var(--muted)">시작시간 기준</span></div></div>'
     + '<div style="display:flex;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--bdr)">'
       +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0;padding-top:6px">이미지 URL</label>'
       +'<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
@@ -9645,9 +9805,11 @@ window._openItemRegModal = function() {
   }
 
   function resetForm(){
-    ['name','client','inPrice','outPrice','stock','spec','link','imgUrl'].forEach(function(id){
+    ['name','client','inPrice','outPrice','stock','spec','link','imgUrl','lot','colorId','location','inDate','linkStart','linkExpiry'].forEach(function(id){
       var el=document.getElementById('_irm_'+id); if(el) el.value='';
     });
+    var itp=document.getElementById('_irm_itemType'); if(itp) itp.selectedIndex=0;
+    var fab=document.getElementById('_irm_fabricInfo'); if(fab) fab.style.display='none';
     var cat=document.getElementById('_irm_cat'); if(cat) cat.selectedIndex=0;
     var unit=document.getElementById('_irm_unit'); if(unit) unit.selectedIndex=0;
     var memo=document.getElementById('_irm_memo'); if(memo) memo.value='';
@@ -9659,9 +9821,9 @@ window._openItemRegModal = function() {
     var cat = gv('cat');
     var unit= gv('unit');
     if(!nm)  { UI.Toast.error('품목명을 입력하세요.'); return false; }
-    if(!cat||cat==='선택') { UI.Toast.error('카테고리를 선택하세요.'); return false; }
+    if(!cat||cat==='선택') { UI.Toast.error('사업구분을 선택하세요.'); return false; }
     if(!unit||unit==='선택'){ UI.Toast.error('단위를 선택하세요.'); return false; }
-    var newCode = 'ITM-' + String((window._itemsDB||[]).length + 1).padStart(4,'0');
+    var newCode = window._nextItemCode();
     var inP  = gv('inPrice').replace(/,/g,'');
     var outP = gv('outPrice').replace(/,/g,'');
     if(!window._itemsDB) window._itemsDB = [];
@@ -9681,7 +9843,14 @@ window._openItemRegModal = function() {
       memo:     gv('memo'),
       client:   gv('client').trim(),
       link:     gv('link').trim(),
-      imgUrl:   gv('imgUrl').trim()
+      imgUrl:   gv('imgUrl').trim(),
+      itemType: gv('itemType'),         /* 품목유형: 원단/원재료/부자재/가공/완제품/제품 */
+      lot:      gv('lot').trim(),       /* 롯트/롤번호 */
+      colorId:  gv('colorId').trim(),   /* 컬러 */
+      location: gv('location').trim(),  /* 보관위치 */
+      inDate:   gv('inDate'),           /* 입고날짜 */
+      linkStart:  gv('linkStart'),      /* 링크 시작시간 */
+      linkExpiry: gv('linkExpiry')      /* 링크 만료시간 */
     });
     if(window._itmRerender) window._itmRerender();
     UI.Toast.success('품목 ['+nm+'] '+newCode+' 등록 완료 ✓');
@@ -9717,7 +9886,7 @@ var _ITM_PAGE_SZ = 20;
 
 /* 단일 행 렌더러 */
 window._itmRenderRow = function(it, idx) {
-  var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981'};
+  var catColors = {'DTP 원단':'#4361ee','자수 원단':'#8b5cf6','부자재':'#f59e0b','완제품':'#10b981','자수':'#8b5cf6','퀼팅':'#ec4899','DTP':'#4361ee','폴리DTP':'#0ea5e9','DTP아람원FA':'#6366f1','폴리아람FA':'#14b8a6','자수아람FA':'#a855f7','패브릭허브':'#f59e0b'};
   var pg   = Math.floor(idx/_ITM_PAGE_SZ)+1;
   var cc   = catColors[it.cat]||'#607d8b';
   var sc   = it.status==='활성'?'#10b981':'#9ca3af';
@@ -9747,6 +9916,7 @@ window._itmRenderRow = function(it, idx) {
     +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:600;color:'+stColor+'">'+it.stock+it.unit+'</td>'
     +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted)">'+it.date+'</td>'
     +'<td style="text-align:center"><span style="background:'+sc+';color:#fff;border-radius:4px;padding:2px 10px;font-size:12px;font-weight:700">'+it.status+'</span></td>'
+    +'<td onclick="_openItemDetail(\''+it.code+'\')" style="text-align:center;font-size:11px">'+(window._aramExpiryStatus?(function(s){return '<span style="display:inline-block;padding:2px 7px;border-radius:4px;font-weight:700;color:#fff;background:'+s.color+'">'+s.label+'</span>';})(window._aramExpiryStatus(it.linkExpiry)):'')+(it.linkExpiry?'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(it.linkExpiry||'').replace('T',' ')+'</div>':'')+'</td>'
     +'<td style="text-align:center">'
       +'<button style="padding:3px 9px;font-size:11px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:4px;cursor:pointer;margin-right:3px" onclick="event.stopPropagation();_openItemDetail(\''+it.code+'\')">상세</button>'
       +'<button style="padding:3px 9px;font-size:11px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:4px;cursor:pointer" onclick="event.stopPropagation();_openItemDetail(\''+it.code+'\')">수정</button>'
@@ -9793,6 +9963,9 @@ window._itmRerender = function() {
   if(badge) badge.textContent = db.length+'건';
   if(window._itmRenderPgBtns) window._itmRenderPgBtns();
   window._itmPage(1);
+
+  /* 💾 변경 내용을 브라우저에 자동 저장 */
+  if(window._saveItems) window._saveItems();
 };
 
 /* 페이지 이동 */
@@ -9815,7 +9988,8 @@ window._itmSearch = function() {
   var incStop = !!(document.getElementById('itm-inc-stop')||{}).checked;
   var catF    = ((document.getElementById('item-cat-filter')||{}).value||'');
   var stF     = ((document.getElementById('item-status-filter')||{}).value||'');
-  var hasFilter = !!(kw || catF || stF);
+  var expOnly = !!((document.getElementById('item-exp-only')||{}).checked);
+  var hasFilter = !!(kw || catF || stF || expOnly);
   window._itmSearchActive = hasFilter || !incStop;
   var tbody = document.getElementById('itm-tbody');
   if(!tbody) return;
@@ -9827,12 +10001,14 @@ window._itmSearch = function() {
     var name  = (cells[4]?cells[4].textContent:'').toLowerCase();
     var cat   = (cells[7]?cells[7].textContent:'').trim();       /* [7]=카테고리 */
     var status= (cells[13]?cells[13].textContent:'').trim();     /* [13]=상태 */
+    var expTxt= (cells[14]?cells[14].textContent:'');            /* [14]=유효기간 */
     var pg    = parseInt(tr.getAttribute('data-itm-pg')||'1',10);
     var matchKw  = !kw   || code.includes(kw)||name.includes(kw);
     var matchCat = !catF || cat.includes(catF);
     var matchSt  = !stF  || status.includes(stF);
     var matchStop= incStop || status==='활성';
-    var matchAll = matchKw && matchCat && matchSt && matchStop;
+    var matchExp = !expOnly || (expTxt.indexOf('만료')>=0 || expTxt.indexOf('D-')>=0);
+    var matchAll = matchKw && matchCat && matchSt && matchStop && matchExp;
     var show = (hasFilter || !incStop) ? matchAll : (pg===cur && matchAll);
     tr.style.display = show ? '' : 'none';
     if(matchAll) total++;
