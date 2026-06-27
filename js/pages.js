@@ -6649,6 +6649,28 @@ window._clientsDB = [
   {code:'AR001', name:'아라미패션(주)',    type:'내수', mgr:'하에진', rep:'최아라', tel:'031-777-8899', mobile:'010-1111-2222',email:'ar@ar.co.kr',            region:'경기', addr:'경기도 이천시 부발읍 100',       bal:'6,400,000',  joined:'2023-06-01', status:'활성', price:'기본단가', due:25, memo:''},
 ];
 
+/* ═══════════════════════════════════════════════════
+   💾 거래처 데이터 저장/불러오기 (localStorage)
+   - 브라우저에 저장되어 새로고침해도 데이터가 유지됩니다.
+═══════════════════════════════════════════════════ */
+/* (1) 시작 시: 저장된 거래처가 있으면 기본 데이터 대신 불러오기 */
+(function loadSavedClients(){
+  try {
+    var saved = localStorage.getItem('aram_clients');
+    if (saved) {
+      var arr = JSON.parse(saved);
+      if (Array.isArray(arr) && arr.length) window._clientsDB = arr;
+    }
+  } catch(e) { console.warn('[거래처] 불러오기 실패:', e); }
+})();
+
+/* (2) 저장 함수: 현재 거래처 목록을 브라우저에 저장 */
+window._saveClients = function(){
+  try {
+    localStorage.setItem('aram_clients', JSON.stringify(window._clientsDB || []));
+  } catch(e) { console.warn('[거래처] 저장 실패:', e); }
+};
+
 /* 거래처 코드 변경 이력 저장소 */
 window._codeChangeHistory = window._codeChangeHistory || [];
 
@@ -6752,7 +6774,7 @@ window._openClientDetail = function(code) {
       +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0;padding-top:6px">'+label+'</label>'
       +'<div style="flex:1;display:flex;flex-direction:column;gap:4px">'
       +'<div style="display:flex;gap:6px">'
-      +'<button type="button" onclick="if(window.ARAM_UI)ARAM_UI.Toast.info(\'주소검색 기능 준비 중\')" style="padding:4px 10px;background:#1e2b4a;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer;white-space:nowrap">🇰🇷 주소검색</button>'
+      +'<button type="button" onclick="_aramAddrSearch(\''+zipId+'\',\''+addrId+'\','+(detailId?('\''+detailId+'\''):'null')+')" style="padding:4px 10px;background:#1e2b4a;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer;white-space:nowrap">🇰🇷 주소검색</button>'
       +'<input id="'+zipId+'" type="text" placeholder="우편번호" value="'+ea(zipVal||'')+'" readonly style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px">'
       +'</div>'
       +'<textarea id="'+addrId+'" rows="2" placeholder="주소" style="width:100%;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;resize:vertical;box-sizing:border-box;outline:none" onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'+ea(addrVal||'')+'</textarea>'
@@ -6858,6 +6880,13 @@ window._openClientDetail = function(code) {
   var formHtml = ''
     + secHead('기본 정보')
     + codeRow(c.code)
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_cdf_bizNo" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">사업자등록번호</label>'
+      +'<input id="_cdf_bizNo" type="text" inputmode="numeric" maxlength="12" value="'+ea(c.bizNo||'')+'" placeholder="000-00-00000 (자동 하이픈)" '
+      +'oninput="var d=this.value.replace(/[^0-9]/g,\'\').slice(0,10);var f=d;if(d.length>5)f=d.slice(0,3)+\'-\'+d.slice(3,5)+\'-\'+d.slice(5);else if(d.length>3)f=d.slice(0,3)+\'-\'+d.slice(3);this.value=f;" '
+      +'style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none" '
+      +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+      +'</div>'
     + inRow('상호(이름)', 'name', c.name, 'text', true)
     + radioRow('거래처코드구분', 'codetype', ['사업자자동번호','비사업자(내국인)','비사업자(외국인)'], c.codetype)
     + radioRow('세무소거래처',   'taxtype',  ['거래처코드동일','검색입력','직접입력'], c.taxtype)
@@ -6884,6 +6913,15 @@ window._openClientDetail = function(code) {
     + grpRow('거래처그룹2', '_cdf_grp2', c.grp2)
     + inRow('검색내용', 'search', c.search, 'text')
     + inRow('홈페이지', 'web',    c.web,    'text')
+    + secHead('거래처 전용 사이트 로그인')
+    + inRow('로그인 아이디', 'loginId', c.loginId, 'text')
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_cdf_loginPw" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">비밀번호</label>'
+      +'<input id="_cdf_loginPw" type="password" autocomplete="new-password" value="'+ea(c.loginPw||'')+'" placeholder="비밀번호" '
+      +'style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none" '
+      +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+      +'</div>'
+    + '<div style="padding:6px 0 2px;font-size:11px;color:var(--muted)">※ 거래처 전용 사이트 접속용. (보안 적용은 추후 서버 연동 시)</div>'
     + secHead('재무 정보')
     + inRow('수주 잔액', 'bal', c.bal, 'text')
     + secHead('메모')
@@ -7002,6 +7040,7 @@ window._openClientDetail = function(code) {
   /* ── 유틸: DB 적용 및 UI 갱신 ── */
   function applyDb(vals){
     Object.assign(window._clientsDB[dbIdx], vals);
+    if(window._saveClients) window._saveClients();  /* 💾 수정 즉시 저장(공정단가 포함) */
     c = window._clientsDB[dbIdx];
     _orig = JSON.parse(JSON.stringify(c));
     /* 서브헤더 뱃지 갱신 */
@@ -7090,6 +7129,9 @@ window._openClientDetail = function(code) {
       taxtype:     grv('taxtype'),
       bizcat:      grv('bizcat'),
       bizDiv:      grv('bizDiv'),
+      bizNo:       gv('bizNo').trim(),     /* 사업자등록번호 (세금계산서 연동용) */
+      loginId:     gv('loginId').trim(),   /* 거래처 전용 사이트 로그인 ID */
+      loginPw:     gv('loginPw'),          /* (프로토타입 — 추후 서버 암호화) */
       gongjeong:   collectGongjeong()
     });
     refreshTableRow();
@@ -7173,6 +7215,7 @@ window._openClientDetail = function(code) {
     newClient.status = '활성';
     if(!window._clientsDB) window._clientsDB = [];
     window._clientsDB.push(newClient);
+    if(window._saveClients) window._saveClients();  /* 💾 복사 즉시 저장 */
     UI.Toast.success('복사 완료 — 신규 코드: ' + newCode);
     closeDlg();
     setTimeout(function(){ if(window.goPage) window.goPage('sales-clients'); }, 280);
@@ -8173,6 +8216,46 @@ window._selectAddr = function(target, zip, addr, dong) {
   if (window.ARAM_UI) ARAM_UI.Toast.success('['+zip+'] '+addr+' 입력 완료 — 상세주소를 입력하세요.');
 };
 
+/* ═══════════════════════════════════════════════════
+   📍 범용 주소검색 (거래처 등록/수정 폼 공용)
+   - 카카오(다음) 우편번호 팝업 → 우편번호·도로명주소 자동입력
+   - 선택 후 상세주소 입력칸으로 자동 포커스 이동
+═══════════════════════════════════════════════════ */
+window._aramAddrSearch = function(zipId, addrId, detailId){
+  function doOpen(){
+    new daum.Postcode({
+      oncomplete: function(data){
+        var addr = data.roadAddress || data.jibunAddress || data.address || '';
+        if(data.buildingName && data.apartment === 'Y') addr += ' ' + data.buildingName;
+        var zipEl = document.getElementById(zipId);
+        if(zipEl) zipEl.value = data.zonecode || '';
+        var addrEl = document.getElementById(addrId);
+        if(addrEl){
+          addrEl.value = addr;
+          addrEl.style.borderColor = '#10b981';
+          addrEl.style.background  = '#f0fdf4';
+          setTimeout(function(){ addrEl.style.borderColor=''; addrEl.style.background=''; }, 1500);
+        }
+        if(detailId){
+          setTimeout(function(){
+            var d = document.getElementById(detailId);
+            if(d){ d.focus(); d.placeholder = '동/호수 등 상세주소를 입력하세요'; }
+          }, 80);
+        }
+        if(window.ARAM_UI) ARAM_UI.Toast.success('['+(data.zonecode||'')+'] 주소 입력 완료 — 상세주소를 입력하세요.');
+      }
+    }).open();
+  }
+  if(window.daum && window.daum.Postcode){ doOpen(); return; }
+  /* 우편번호 스크립트가 아직 로드 안됐으면 동적으로 불러온 뒤 실행 */
+  if(window.ARAM_UI) ARAM_UI.Toast.info('주소검색을 준비 중입니다…');
+  var s = document.createElement('script');
+  s.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+  s.onload  = function(){ doOpen(); };
+  s.onerror = function(){ if(window.ARAM_UI) ARAM_UI.Toast.error('주소검색 모듈 로드 실패 — 인터넷 연결을 확인하세요.'); };
+  document.head.appendChild(s);
+};
+
 /* ── 공정단가 행 추가/삭제 ── */
 window._addGongjeongRow = function() {
   var tbody = document.getElementById('gongjeong-tbody');
@@ -8353,9 +8436,9 @@ window._openClientRegModal = function() {
   /* 거래처코드 행 + Fn 버튼 */
   function codeRow(){
     return '<div style="display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr)">'
-      +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">거래처코드</label>'
-      +'<span style="font-size:12px;color:var(--muted);background:var(--bg);border:1.5px solid var(--bdr);border-radius:5px;padding:3px 8px;flex-shrink:0;white-space:nowrap;margin-right:6px">자동생성</span>'
-      +'<input id="_crm_code" type="text" placeholder="직접입력 가능" '
+      +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">사업자등록번호 <span style="color:#ef4444">*</span></label>'
+      +'<span style="font-size:11px;color:var(--muted);background:var(--bg);border:1.5px solid var(--bdr);border-radius:5px;padding:3px 8px;flex-shrink:0;white-space:nowrap;margin-right:6px">거래처코드</span>'
+      +'<input id="_crm_code" type="text" inputmode="numeric" maxlength="12" placeholder="000-00-00000 (자동 하이픈)" '
       +'style="flex:1;min-width:0;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none;transition:border .15s" '
       +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
       +'<span id="_crm_code_badge" style="font-size:11px;font-weight:600;min-width:55px;flex-shrink:0;margin:0 6px"></span>'
@@ -8402,7 +8485,7 @@ window._openClientRegModal = function() {
       +'<label style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0;padding-top:6px">'+label+'</label>'
       +'<div style="flex:1;display:flex;flex-direction:column;gap:4px">'
       +'<div style="display:flex;gap:6px">'
-      +'<button type="button" onclick="if(window.ARAM_UI)ARAM_UI.Toast.info(\'주소검색 기능 준비 중\')" style="padding:4px 10px;background:#1e2b4a;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer;white-space:nowrap">🇰🇷 주소검색</button>'
+      +'<button type="button" onclick="_aramAddrSearch(\''+zipId+'\',\''+addrId+'\','+(detailId?('\''+detailId+'\''):'null')+')" style="padding:4px 10px;background:#1e2b4a;color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer;white-space:nowrap">🇰🇷 주소검색</button>'
       +'<input id="'+zipId+'" type="text" placeholder="우편번호" readonly style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px">'
       +'</div>'
       +'<textarea id="'+addrId+'" rows="2" placeholder="주소" style="width:100%;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;resize:vertical;box-sizing:border-box;outline:none" onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'"></textarea>'
@@ -8500,7 +8583,16 @@ window._openClientRegModal = function() {
     + grpRow('거래처그룹1', '_crm_grp1')
     + grpRow('거래처그룹2', '_crm_grp2')
     + inRow('검색내용', 'search', '검색어(별칭)')
-    + inRow('홈페이지', 'web',    'https://');
+    + inRow('홈페이지', 'web',    'https://')
+    + secHead('거래처 전용 사이트 로그인')
+    + inRow('로그인 아이디', 'loginId', '예: 사업자번호 또는 영문 아이디')
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_crm_loginPw" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">비밀번호</label>'
+      +'<input id="_crm_loginPw" type="password" autocomplete="new-password" placeholder="초기 비밀번호" '
+      +'style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none" '
+      +'onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+      +'</div>'
+    + '<div style="padding:6px 0 2px;font-size:11px;color:var(--muted)">※ 거래처가 전용 사이트에 접속할 때 사용합니다. (보안 적용은 추후 서버 연동 시 진행)</div>';
 
   /* ── split-button 스타일 (detail 동일) ── */
   var SPLIT_L  = 'padding:7px 13px;font-size:12.5px;font-weight:700;background:#4361ee;color:#fff;border:none;border-radius:6px 0 0 6px;cursor:pointer;white-space:nowrap;';
@@ -8597,6 +8689,14 @@ window._openClientRegModal = function() {
       if(el){ el.focus(); el.style.borderColor='#ef4444'; }
       return false;
     }
+    /* 사업자등록번호(거래처코드) 10자리 검증 */
+    var codeDigits = gv('_crm_code').replace(/[^0-9]/g,'');
+    if(codeDigits.length !== 10){
+      UI.Toast.error('사업자등록번호 10자리를 정확히 입력하세요.');
+      var ce=document.getElementById('_crm_code');
+      if(ce){ ce.focus(); ce.style.borderColor='#ef4444'; }
+      return false;
+    }
     var price = gv('_crm_price_type');
     if(!price){
       UI.Toast.error('단가적용을 선택하세요.');
@@ -8658,23 +8758,41 @@ window._openClientRegModal = function() {
     }
     var newEntry = {
       code:    codeVal,
+      bizNo:   codeVal,                 /* 사업자등록번호 = 거래처코드 (세금계산서 연동용) */
       name:    nm,
       type:    '내수',
       mgr:     '',
       rep:     gv('_crm_rep').trim(),
       tel:     gv('_crm_tel').trim(),
+      fax:     gv('_crm_fax').trim(),
       mobile:  gv('_crm_mobile').trim(),
       email:   gv('_crm_email').trim(),
+      bizsub:  gv('_crm_bizsub').trim(),
+      biztype: gv('_crm_biztype').trim(),
+      bizitem: gv('_crm_bizitem').trim(),
       region:  '서울',
-      addr:    (gv('_crm_addr1')||gv('_crm_addrdetail1')).trim(),
+      zip1:        gv('_crm_zip1').trim(),
+      addr:        gv('_crm_addr1').trim(),
+      addrdetail1: gv('_crm_addrdetail1').trim(),
+      zip2:        gv('_crm_zip2').trim(),
+      addr2:       gv('_crm_addr2').trim(),
       bal:     '0',
       joined:  new Date().toISOString().slice(0,10),
       status:  '활성',
       price:   gv('_crm_price_type'),
       due:     gv('_crm_due').trim(),
+      currency: gv('_crm_currency'),
+      grp1:    gv('_crm_grp1').trim(),
+      grp2:    gv('_crm_grp2').trim(),
       search:  gv('_crm_search').trim(),
+      web:     gv('_crm_web').trim(),
       memo:    '',
+      codetype: (document.querySelector('input[name="rc-codetype"]:checked')||{}).value||'',
+      taxtype:  (document.querySelector('input[name="rc-taxtype"]:checked')||{}).value||'',
+      bizcat:   (document.querySelector('input[name="rc-bizcat"]:checked')||{}).value||'',
       bizDiv:  (document.querySelector('input[name="rc-bizdiv"]:checked')||{value:'법인'}).value||'법인',
+      loginId: gv('_crm_loginId').trim(),  /* 거래처 전용 사이트 로그인 ID */
+      loginPw: gv('_crm_loginPw'),         /* (프로토타입 단계 — 추후 서버에서 암호화) */
       gongjeong: collectGongjeong()
     };
     window._clientsDB = window._clientsDB || [];
@@ -8770,7 +8888,7 @@ window._openClientRegModal = function() {
     ['_crm_code','_crm_name','_crm_bizsub','_crm_rep','_crm_biztype','_crm_bizitem',
      '_crm_tel','_crm_fax','_crm_email','_crm_mobile',
      '_crm_zip1','_crm_zip2','_crm_addrdetail1','_crm_search','_crm_grp1','_crm_grp2','_crm_web',
-     '_crm_addr1','_crm_addr2'].forEach(function(id){
+     '_crm_addr1','_crm_addr2','_crm_loginId','_crm_loginPw'].forEach(function(id){
       var el=document.getElementById(id); if(el) el.value='';
     });
     /* select 초기화 */
@@ -8829,13 +8947,21 @@ window._openClientRegModal = function() {
   var codeInp = document.getElementById('_crm_code');
   if(codeInp){
     codeInp.addEventListener('input', function(){
+      /* 사업자등록번호 자동 하이픈 (000-00-00000) */
+      var digits = codeInp.value.replace(/[^0-9]/g,'').slice(0,10);
+      var f = digits;
+      if(digits.length > 5)      f = digits.slice(0,3)+'-'+digits.slice(3,5)+'-'+digits.slice(5);
+      else if(digits.length > 3) f = digits.slice(0,3)+'-'+digits.slice(3);
+      if(f !== codeInp.value) codeInp.value = f;
+
       var v   = codeInp.value.trim();
       var bdg = document.getElementById('_crm_code_badge');
       if(!bdg) return;
       if(!v){ bdg.textContent=''; return; }
       var dup = (window._clientsDB||[]).some(function(x){ return x.code===v; });
-      bdg.textContent = dup ? '⚠ 중복' : '✓ 가능';
-      bdg.style.color  = dup ? '#ef4444' : '#10b981';
+      if(dup){ bdg.textContent='⚠ 중복'; bdg.style.color='#ef4444'; }
+      else if(digits.length===10){ bdg.textContent='✓ 가능'; bdg.style.color='#10b981'; }
+      else { bdg.textContent=digits.length+'/10자리'; bdg.style.color='#f59e0b'; }
     });
   }
 
@@ -10066,6 +10192,9 @@ window._cliRerender = function() {
 
   /* 검색 필터 재적용 */
   if(window._cliSearch) window._cliSearch();
+
+  /* 💾 변경 내용을 브라우저에 자동 저장 (새로고침해도 유지) */
+  if(window._saveClients) window._saveClients();
 };
 
 window._cliCurrentPage = 1;
