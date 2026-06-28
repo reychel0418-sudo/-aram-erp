@@ -1142,8 +1142,8 @@ window.ARAM_PAGES = {
         +'<td style="width:30px;text-align:center" onclick="event.stopPropagation()"><input type="checkbox" style="cursor:pointer"></td>'
         +'<td style="width:30px;text-align:center;font-size:12px;color:var(--muted)">'+(idx+1)+'</td>'
         +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(it.client||'<span style="color:var(--muted)">—</span>')+'</td>'
-        +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted)">'+it.code+'</td>'
-        +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:700;color:#4361ee;text-decoration:underline;cursor:pointer">'+it.name+'</td>'
+        +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:700;color:#4361ee;text-decoration:underline;cursor:pointer">'+it.code+'</td>'
+        +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:500;color:var(--txt)">'+it.name+'</td>'
         +'<td style="font-size:11.5px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
           +(it.link ? '<a href="'+it.link+'" target="_blank" onclick="event.stopPropagation()" style="color:#2563eb;text-decoration:underline">'+linkTxt+'</a>' : '<span style="color:var(--muted)">—</span>')
         +'</td>'
@@ -1332,7 +1332,7 @@ window.ARAM_PAGES = {
       <button onclick="_itmExportCSV(false)" style="padding:7px 13px;font-size:12.5px;font-weight:700;background:#1d6f42;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">Excel</button>
 
       <!-- 웹자료올리기 -->
-      <button onclick="ARAM_UI.Toast.info('웹자료올리기 기능 준비 중입니다.')" style="padding:7px 13px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer;white-space:nowrap">웹자료올리기</button>
+      <button onclick="window._openItemXlsUpload()" style="padding:7px 13px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer;white-space:nowrap">📊 웹업로드</button>
 
       <!-- 오천건이상조회 -->
       <button onclick="ARAM_UI.Toast.info('5,000건 이상 조회 기능 준비 중입니다.')" style="padding:7px 13px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer;white-space:nowrap">오천건이상조회</button>
@@ -3130,8 +3130,23 @@ window.ARAM_PAGES = {
      재고현황
   ══════════════════════════════════ */
   inventory() {
-    const items = window.ARAM_DATA.inventory;
-    const statusBadge = s => ({'정상':'badge badge-solid-green','부족':'badge badge-orange','품절':'badge badge-err'})[s]||'badge badge-gray';
+    /* 💾 품목등록(_itemsDB)을 재고현황의 데이터 소스로 사용 — 품목=재고 통합 (가공 제외) */
+    const _num = v => parseInt(String(v||'').replace(/,/g,''))||0;
+    const _db  = (window._itemsDB || []).filter(it => it.itemType !== '가공');
+    const items = _db.map(it => {
+      const stn = _num(it.stock);
+      return {
+        code: it.code, name: it.name, colorId: it.colorId||'', cat: it.cat||'',
+        width: it.spec || it.width || '-', unit: it.unit||'',
+        stock: (it.stock||'0') + (it.unit||''),
+        location: it.location || '-', incoming: it.inDate || it.date || '-',
+        status: stn===0 ? '품절' : (it.status==='단종' ? '단종' : '정상'),
+        stn: stn
+      };
+    });
+    const _totalValue = _db.reduce((s,it)=> s + _num(it.stock)*_num(it.inPrice||it.price), 0);
+    const _outCnt = items.filter(r=>r.stn===0).length;
+    const statusBadge = s => ({'정상':'badge badge-solid-green','부족':'badge badge-orange','품절':'badge badge-err','단종':'badge badge-gray'})[s]||'badge badge-gray';
     return `
     <div class="page-header">
       <div class="flex-between">
@@ -3139,7 +3154,7 @@ window.ARAM_PAGES = {
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:12.5px;color:#9ba8c0">기준일: 2026-05-20</span>
           <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('재고현황')">CSV ↓</button>
-          <button class="btn btn-secondary btn-sm" onclick="if(window.ARAM_UI) ARAM_UI.Toast.info('재고현황이 최신 데이터로 갱신되었습니다.')">↻ 새로고침</button>
+          <button class="btn btn-secondary btn-sm" onclick="if(window.goPage)window.goPage('inventory');if(window.ARAM_UI)ARAM_UI.Toast.success('재고를 최신 품목 데이터로 갱신했습니다.')">↻ 새로고침</button>
         </div>
       </div>
     </div>
@@ -3147,10 +3162,10 @@ window.ARAM_PAGES = {
     <!-- KPI -->
     <div class="stat-grid mb-16">
       ${[
-        ['총 SKU','1,247종','전체 원단 SKU 수','📦','#4361ee'],
-        ['재고가치','₩3,840M','원가 기준','💰','#10b981'],
-        ['안전재고 미달','23종','즉시 발주 필요','⚠️','#f59e0b'],
-        ['재고 회전율','6.8회','최근 30일 기준','🔄','#8b5cf6'],
+        ['총 품목', items.length+'종','등록 품목 수(가공 제외)','📦','#4361ee'],
+        ['재고가치','₩'+_totalValue.toLocaleString(),'입고단가 기준','💰','#10b981'],
+        ['품절', _outCnt+'종','재고 0 품목','⚠️','#f59e0b'],
+        ['재고 회전율','—','준비중','🔄','#8b5cf6'],
       ].map(([l,v,s,i,c])=>`
       <div class="stat-card" style="display:flex;align-items:center;gap:14px">
         <div style="width:46px;height:46px;border-radius:12px;background:${c}18;display:flex;align-items:center;justify-content:center;font-size:22px">${i}</div>
@@ -3202,24 +3217,24 @@ window.ARAM_PAGES = {
                 <th>위치(랙)</th><th>입고예정</th><th class="td-center">상태</th>
               </tr></thead>
               <tbody>
-                ${items.map(r=>`
-                <tr style="cursor:pointer" onmouseover="this.style.background='var(--primary-lt)'" onmouseout="this.style.background=''">
+                ${items.length ? items.map(r=>`
+                <tr style="cursor:pointer" onclick="if(window._openItemDetail)_openItemDetail('${r.code}')" onmouseover="this.style.background='var(--primary-lt)'" onmouseout="this.style.background=''">
                   <td class="checkbox-cell"><input type="checkbox" onclick="event.stopPropagation()"></td>
                   <td class="td-link">${r.code}</td>
-                  <td><div class="color-dot" style="background:${r.color};width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.1)"></div></td>
+                  <td style="font-size:12.5px;color:#6b7a99">${r.colorId||'—'}</td>
                   <td style="font-weight:500">${r.name}</td>
                   <td>${r.width}</td>
                   <td class="td-right font-600">${r.stock}</td>
-                  <td class="td-right" style="color:#9ba8c0">${r.safety.toLocaleString()}</td>
+                  <td class="td-right" style="color:#9ba8c0">—</td>
                   <td style="font-size:12.5px;color:#6b7a99">${r.location}</td>
                   <td style="font-size:12.5px;color:#6b7a99">${r.incoming}</td>
                   <td class="td-center"><span class="${statusBadge(r.status)}">${r.status}</span></td>
-                </tr>`).join('')}
+                </tr>`).join('') : `<tr><td colspan="10" style="text-align:center;padding:32px;color:#9ba8c0">등록된 품목이 없습니다. 품목등록에서 원단을 등록하면 여기 표시됩니다.</td></tr>`}
               </tbody>
             </table>
           </div>
           <div class="pagination">
-            <span class="page-info">전체 1,247건</span>
+            <span class="page-info">전체 ${items.length}건</span>
             <div class="page-nums">
               <span class="page-btn">‹</span>
               ${[1,2,3,4,5].map((n,i)=>`<span class="page-btn${i===0?' active':''}">${n}</span>`).join('')}
@@ -8323,6 +8338,165 @@ window._aramLinkAutoExpiry = function(startId, expiryId, kind){
   eEl.value = _aramFmtDT(d);
   if(window.ARAM_UI) ARAM_UI.Toast.success('만료시간 자동설정 → '+eEl.value.replace('T',' '));
 };
+/* ═══════════════════════════════════════════════════
+   🔗 가공 ↔ 공정단가 연결
+   거래처+사업구분이 정해지면, 그 거래처의 공정단가(공정명=사업구분)를
+   품목 출고단가에 자동 입력. (예: (주)지성텍스 + DTP → 2,500)
+═══════════════════════════════════════════════════ */
+window._aramFillGongjeongPrice = function(prefix){
+  var clientEl = document.getElementById(prefix+'client');
+  var catEl    = document.getElementById(prefix+'cat');
+  var outEl    = document.getElementById(prefix+'outPrice');
+  if(!clientEl || !catEl || !outEl) return;
+  var clientName = (clientEl.value||'').trim();
+  var cat = (catEl.value||'').trim();
+  if(!clientName || !cat || cat==='선택') return;
+  var client = (window._clientsDB||[]).find(function(c){ return c.name===clientName; });
+  if(!client) return;
+  /* 🔴 (버그수정) 공정단가 자체가 없으면 — 조용히 실패하지 말고 이유 안내 */
+  if(!client.gongjeong || !client.gongjeong.length){
+    if(window.ARAM_UI) ARAM_UI.Toast.info('['+clientName+']에 등록된 공정단가가 없습니다. 거래처관리 → 해당 거래처 → 단가적용 \'공정단가\'에서 먼저 등록하세요.');
+    return;
+  }
+  /* 정규화(공백·대소문자 무시) → 정확일치 우선, 없으면 부분일치(사업구분이 공정명 포함: 폴리DTP⊃DTP) */
+  var catN = cat.toLowerCase();
+  var gj = client.gongjeong.find(function(g){ return (g.name||'').trim().toLowerCase()===catN; });
+  if(!gj) gj = client.gongjeong.find(function(g){ var n=(g.name||'').trim().toLowerCase(); return n && catN.indexOf(n)>=0; });
+  if(gj && gj.price){
+    /* 🔴 (버그수정) 출고단가는 type=number 칸 → 콤마 없는 순수 숫자로 입력해야 들어감 */
+    outEl.value = Number(gj.price);
+    if(window.ARAM_UI) ARAM_UI.Toast.success(clientName+' · '+(gj.name||cat)+' 공정단가 '+Number(gj.price).toLocaleString()+'원 → 출고단가 자동입력');
+  } else {
+    /* 공정단가는 있으나 사업구분과 매칭 안 됨 — 등록된 공정명을 함께 안내 */
+    var names = client.gongjeong.map(function(g){ return g.name; }).filter(Boolean).join(', ');
+    if(window.ARAM_UI) ARAM_UI.Toast.info('['+clientName+']에 \''+cat+'\' 관련 공정단가가 없습니다. (등록된 공정: '+(names||'없음')+')');
+  }
+};
+
+/* ═══════════════════════════════════════════════════
+   📊 엑셀 대량 품목등록 (웹업로드)
+═══════════════════════════════════════════════════ */
+window._aramItemXlsHeaders = ['품목명','사업구분','품목유형','단위','거래처','입고단가','출고단가','재고','규격','롯트','컬러','보관위치','입고날짜','링크','메모'];
+
+/* SheetJS(xlsx) 동적 로드 */
+function _aramLoadSheetJS(cb){
+  if(window.XLSX){ cb(); return; }
+  var s=document.createElement('script');
+  s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  s.onload=function(){ cb(); };
+  s.onerror=function(){ if(window.ARAM_UI) ARAM_UI.Toast.error('엑셀 모듈 로드 실패 — 인터넷 연결을 확인하세요.'); };
+  document.head.appendChild(s);
+}
+
+/* 양식(템플릿) CSV 다운로드 */
+window._aramDownloadItemTemplate = function(){
+  var headers = window._aramItemXlsHeaders;
+  var sample  = ['플라워 원단','DTP','원단','야드(Y)','지성텍스(주)','3200','3500','100','60수 혼방','#3','5','A동 3번랙','2026-06-28','https://example.com','샘플메모'];
+  var csv = '﻿' + headers.join(',') + '\n' + sample.join(',') + '\n';
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '품목등록_양식.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  if(window.ARAM_UI) ARAM_UI.Toast.success('양식 다운로드 완료 — 엑셀로 열어 작성 후 업로드하세요.');
+};
+
+/* 파싱된 행들을 _itemsDB에 대량 등록 */
+window._aramProcessItemRows = function(rows){
+  if(!rows || !rows.length){ if(window.ARAM_UI) ARAM_UI.Toast.error('업로드할 데이터가 없습니다.'); return; }
+  if(!window._itemsDB) window._itemsDB = [];
+  var num = function(v){ return String(v==null?'':v).replace(/,/g,'').trim(); };
+  var str = function(v){ return String(v==null?'':v).trim(); };
+  var today = new Date().toISOString().slice(0,10);
+  var added=0, skipped=0;
+  rows.forEach(function(r){
+    var name = str(r['품목명']);
+    if(!name){ skipped++; return; }
+    var inP=num(r['입고단가']), outP=num(r['출고단가']);
+    window._itemsDB.push({
+      code: window._nextItemCode(),
+      name: name,
+      cat: str(r['사업구분']),
+      itemType: str(r['품목유형']),
+      unit: str(r['단위']),
+      client: str(r['거래처']),
+      inPrice: inP ? Number(inP).toLocaleString() : '',
+      outPrice: outP ? Number(outP).toLocaleString() : '',
+      price: inP ? Number(inP).toLocaleString() : '',
+      stock: num(r['재고'])||'0',
+      spec: str(r['규격']),
+      lot: str(r['롯트']),
+      colorId: str(r['컬러']),
+      location: str(r['보관위치']),
+      inDate: str(r['입고날짜']),
+      link: str(r['링크']),
+      memo: str(r['메모']),
+      date: today, status:'활성', width:'', imgUrl:''
+    });
+    added++;
+  });
+  if(window._saveItems) window._saveItems();
+  if(window._itmRerender) window._itmRerender();
+  if(window.ARAM_UI) ARAM_UI.Toast.success(added+'개 품목 대량등록 완료'+(skipped?(' ('+skipped+'개 건너뜀: 품목명 없음)'):''));
+};
+
+/* 선택한 파일 분석 → 등록 */
+window._aramDoItemXlsUpload = function(){
+  var fileEl=document.getElementById('aram-xls-file');
+  var statusEl=document.getElementById('aram-xls-status');
+  if(!fileEl || !fileEl.files || !fileEl.files.length){ if(window.ARAM_UI) ARAM_UI.Toast.error('파일을 먼저 선택하세요.'); return; }
+  var file=fileEl.files[0];
+  if(statusEl) statusEl.textContent='엑셀 모듈 불러오는 중…';
+  _aramLoadSheetJS(function(){
+    if(statusEl) statusEl.textContent='파일 분석 중…';
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        window._aramProcessItemRows(rows);
+        var o=document.getElementById('aram-xls-ov'); if(o) o.remove();
+      }catch(err){
+        if(window.ARAM_UI) ARAM_UI.Toast.error('파일 분석 실패: '+err.message);
+        if(statusEl) statusEl.textContent='분석 실패 — 양식을 확인하세요.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+/* 엑셀 대량등록 다이얼로그 열기 */
+window._openItemXlsUpload = function(){
+  var old=document.getElementById('aram-xls-ov'); if(old) old.remove();
+  var ov=document.createElement('div');
+  ov.id='aram-xls-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML=
+    '<div style="background:#fff;border-radius:12px;width:560px;max-width:95vw;box-shadow:0 24px 72px rgba(0,0,0,.3);overflow:hidden">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#1e2b4a;color:#fff">'
+      +'<span style="font-size:15px;font-weight:800">📊 엑셀 대량 품목등록 (웹업로드)</span>'
+      +'<button onclick="var o=document.getElementById(\'aram-xls-ov\');if(o)o.remove();" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer">✕</button>'
+    +'</div>'
+    +'<div style="padding:20px">'
+      +'<ol style="font-size:13px;color:#475569;line-height:1.9;padding-left:18px;margin:0 0 14px">'
+        +'<li><b>양식 다운로드</b> → 엑셀로 열어 품목 작성</li>'
+        +'<li>엑셀(.xlsx) 또는 CSV로 저장</li>'
+        +'<li>아래에서 파일 선택 → <b>업로드</b></li>'
+      +'</ol>'
+      +'<button onclick="window._aramDownloadItemTemplate()" style="width:100%;padding:10px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">⬇ 양식(템플릿) 다운로드</button>'
+      +'<div style="border:2px dashed #cbd5e1;border-radius:10px;padding:18px;text-align:center;background:#f8fafc">'
+        +'<input type="file" id="aram-xls-file" accept=".xlsx,.xls,.csv" style="font-size:13px">'
+        +'<div style="font-size:11px;color:#94a3b8;margin-top:8px">엑셀(.xlsx/.xls) 또는 CSV 파일</div>'
+      +'</div>'
+      +'<div id="aram-xls-status" style="font-size:12px;color:#64748b;margin-top:10px;text-align:center"></div>'
+      +'<button onclick="window._aramDoItemXlsUpload()" style="width:100%;padding:11px;background:#4361ee;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">📤 업로드 (대량 등록)</button>'
+      +'<div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.6">※ <b>필수</b>: 품목명 &nbsp; ※ 컬럼: '+window._aramItemXlsHeaders.join(', ')+'</div>'
+    +'</div></div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
+
 /* 만료상태: 유효(초록)/임박 D-n(주황)/만료(빨강)/없음 */
 window._aramExpiryStatus = function(expiryStr){
   if(!expiryStr) return { key:'none', label:'—', color:'#9ca3af' };
@@ -9445,10 +9619,20 @@ window._openItemDetail = function(code) {
       + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_idf_inDate" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">입고날짜</label><input id="_idf_inDate" type="date" value="'+ea(it.inDate||'')+'" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
     + '</div>'
     + selRow('단위','unit',it.unit,['m','ea','set','box','kg','야드(Y)','절(R)','중량(K)','봉'])
-    + inRow('거래처','client',it.client,'text',false)
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_idf_client" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">거래처</label>'
+      +'<select id="_idf_client" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'
+        + (function(){
+            var names=(window._clientsDB||[]).map(function(c){return c.name;});
+            var opts='<option value="">— 선택 —</option>';
+            if(it.client && names.indexOf(it.client)<0) opts+='<option value="'+ea(it.client)+'" selected>'+ea(it.client)+' (미등록)</option>';
+            opts+=(window._clientsDB||[]).map(function(c){ return '<option value="'+ea(c.name)+'"'+(c.name===it.client?' selected':'')+'>'+ea(c.name)+'</option>'; }).join('');
+            return opts;
+          })()
+      +'</select></div>'
     + secHead('단가 정보')
-    + inRow('입고단가','inPrice',it.inPrice||it.price,'number',false)
-    + inRow('출고단가','outPrice',it.outPrice,'number',false)
+    + inRow('입고단가','inPrice',String(it.inPrice||it.price||'').replace(/,/g,''),'number',false)
+    + inRow('출고단가','outPrice',String(it.outPrice||'').replace(/,/g,''),'number',false)
     + secHead('재고 / 규격')
     + inRow('재고','stock',it.stock,'number',false)
     + inRow('규격','spec',it.spec,'text',false)
@@ -9544,6 +9728,12 @@ window._openItemDetail = function(code) {
   document.body.appendChild(bd);
   var modal = document.getElementById('_idf_modal');
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ modal.style.transform='scale(1)'; modal.style.opacity='1'; }); });
+
+  /* 🔗 가공↔공정단가: 거래처/사업구분 변경 시 공정단가 자동입력 */
+  var _gjCat = document.getElementById('_idf_cat');
+  if(_gjCat) _gjCat.addEventListener('change', function(){ window._aramFillGongjeongPrice('_idf_'); });
+  var _gjCli = document.getElementById('_idf_client');
+  if(_gjCli) _gjCli.addEventListener('change', function(){ window._aramFillGongjeongPrice('_idf_'); });
 
   function gv(id){ var el=document.getElementById('_idf_'+id); return el?el.value:''; }
   var saveMenu = document.getElementById('_idf_savemenu');
@@ -9698,6 +9888,12 @@ window._openItemRegModal = function() {
 
   var formHtml = ''
     + secHead('기본 정보')
+    + '<div style="display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_irm_code" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">품목코드 <span style="color:#ef4444">*</span></label>'
+      +'<input id="_irm_code" type="text" placeholder="직접 입력 (또는 Fn → 자동생성)" style="flex:1;min-width:0;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none;transition:border .15s" onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'
+      +'<span id="_irm_code_badge" style="font-size:11px;font-weight:600;min-width:50px;flex-shrink:0;margin:0 6px"></span>'
+      +'<button type="button" id="_irm_fn_btn" style="padding:3px 14px;font-size:11.5px;font-weight:700;background:#4361ee;color:#fff;border:none;border-radius:4px;cursor:pointer;letter-spacing:.5px;flex-shrink:0" title="코드 자동생성">Fn</button>'
+    +'</div>'
     + inRow('품목명','name','품목명을 입력하세요','text',true)
     + selRow('사업구분','cat',['선택','자수','퀼팅','DTP','폴리DTP','DTP아람원FA','폴리아람FA','자수아람FA','패브릭허브'],true)
     + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
@@ -9713,7 +9909,12 @@ window._openItemRegModal = function() {
       + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_irm_inDate" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">입고날짜</label><input id="_irm_inDate" type="date" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"></div>'
     + '</div>'
     + selRow('단위','unit',['선택','m','ea','set','box','kg','야드(Y)','절(R)','중량(K)','봉'],true)
-    + inRow('거래처','client','관련 거래처명','text',false)
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      +'<label for="_irm_client" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">거래처</label>'
+      +'<select id="_irm_client" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'
+        +'<option value="">— 선택 —</option>'
+        +(window._clientsDB||[]).map(function(c){ return '<option value="'+ea(c.name)+'">'+ea(c.name)+'</option>'; }).join('')
+      +'</select></div>'
     + secHead('단가 정보')
     + inRow('입고단가','inPrice','예: 3200','number',false)
     + inRow('출고단가','outPrice','예: 3500','number',false)
@@ -9785,7 +9986,7 @@ window._openItemRegModal = function() {
           +'</div>'
         +'</div>'
         +'<button id="_irm_reset" style="padding:7px 12px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer">다시 작성</button>'
-        +'<button id="_irm_upload" style="padding:7px 12px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer">웹자료올리기</button>'
+        +'<button id="_irm_upload" style="padding:7px 12px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer">📊 웹업로드</button>'
         +'<button id="_irm_cancel" style="padding:7px 12px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer">닫기</button>'
       +'</div>'
     +'</div>';
@@ -9793,6 +9994,29 @@ window._openItemRegModal = function() {
   document.body.appendChild(bd);
   var modal = document.getElementById('_irm_modal');
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ modal.style.transform='scale(1)'; modal.style.opacity='1'; }); });
+
+  /* 🔗 가공↔공정단가: 거래처/사업구분 변경 시 공정단가 자동입력 */
+  var _gjCat = document.getElementById('_irm_cat');
+  if(_gjCat) _gjCat.addEventListener('change', function(){ window._aramFillGongjeongPrice('_irm_'); });
+  var _gjCli = document.getElementById('_irm_client');
+  if(_gjCli) _gjCli.addEventListener('change', function(){ window._aramFillGongjeongPrice('_irm_'); });
+
+  /* 품목코드 실시간 중복체크 */
+  var _icInp = document.getElementById('_irm_code');
+  if(_icInp){ _icInp.addEventListener('input', function(){
+    var v=_icInp.value.trim(); var bdg=document.getElementById('_irm_code_badge'); if(!bdg) return;
+    if(!v){ bdg.textContent=''; return; }
+    var dup=(window._itemsDB||[]).some(function(x){ return x.code===v; });
+    bdg.textContent = dup?'⚠ 중복':'✓ 가능'; bdg.style.color = dup?'#ef4444':'#10b981';
+  }); }
+  /* Fn 버튼 — 품목코드 자동생성 */
+  var _fnBtn = document.getElementById('_irm_fn_btn');
+  if(_fnBtn){ _fnBtn.onclick = function(e){ e.stopPropagation();
+    var ci=document.getElementById('_irm_code'); if(!ci) return;
+    ci.value = window._nextItemCode ? window._nextItemCode() : '';
+    ci.dispatchEvent(new Event('input'));
+    if(window.ARAM_UI) ARAM_UI.Toast.info('자동생성 코드: '+ci.value);
+  }; }
 
   function gv(id){ var el=document.getElementById('_irm_'+id); return el?el.value:''; }
   var saveMenu = document.getElementById('_irm_savemenu');
@@ -9810,6 +10034,8 @@ window._openItemRegModal = function() {
     });
     var itp=document.getElementById('_irm_itemType'); if(itp) itp.selectedIndex=0;
     var fab=document.getElementById('_irm_fabricInfo'); if(fab) fab.style.display='none';
+    var cc2=document.getElementById('_irm_code'); if(cc2) cc2.value='';
+    var cb2=document.getElementById('_irm_code_badge'); if(cb2) cb2.textContent='';
     var cat=document.getElementById('_irm_cat'); if(cat) cat.selectedIndex=0;
     var unit=document.getElementById('_irm_unit'); if(unit) unit.selectedIndex=0;
     var memo=document.getElementById('_irm_memo'); if(memo) memo.value='';
@@ -9823,7 +10049,9 @@ window._openItemRegModal = function() {
     if(!nm)  { UI.Toast.error('품목명을 입력하세요.'); return false; }
     if(!cat||cat==='선택') { UI.Toast.error('사업구분을 선택하세요.'); return false; }
     if(!unit||unit==='선택'){ UI.Toast.error('단위를 선택하세요.'); return false; }
-    var newCode = window._nextItemCode();
+    var newCode = gv('code').trim();
+    if(!newCode){ UI.Toast.error('품목코드를 입력하세요. (Fn 버튼으로 자동생성 가능)'); var _ce=document.getElementById('_irm_code'); if(_ce){_ce.focus();_ce.style.borderColor='#ef4444';} return false; }
+    if((window._itemsDB||[]).some(function(x){ return x.code===newCode; })){ UI.Toast.error('품목코드 ['+newCode+'] 가 이미 있습니다. 다른 코드를 입력하세요.'); var _ce2=document.getElementById('_irm_code'); if(_ce2){_ce2.focus();_ce2.style.borderColor='#ef4444';} return false; }
     var inP  = gv('inPrice').replace(/,/g,'');
     var outP = gv('outPrice').replace(/,/g,'');
     if(!window._itemsDB) window._itemsDB = [];
@@ -9868,7 +10096,7 @@ window._openItemRegModal = function() {
   document.getElementById('_irm_savekeep').onclick = function(){ saveMenu.style.display='none'; doSave(true); };
   document.getElementById('_irm_savenew').onclick  = function(){ saveMenu.style.display='none'; if(doSave(false)){ setTimeout(function(){ window._openItemRegModal(); },150); } };
   document.getElementById('_irm_reset').onclick    = function(){ resetForm(); UI.Toast.info('양식을 초기화했습니다.'); };
-  document.getElementById('_irm_upload').onclick   = function(){ UI.Toast.info('웹자료올리기 기능 준비 중입니다.'); };
+  document.getElementById('_irm_upload').onclick   = function(){ window._openItemXlsUpload(); };
   function menuClickaway(e){ var sg=document.getElementById('_irm_sg'); if(sg&&!sg.contains(e.target)) saveMenu.style.display='none'; }
   document.addEventListener('click', menuClickaway);
   function kbH(e){ if(e.key==='Escape') closeDlg(); if(e.key==='F8'){e.preventDefault();doSave(false);} }
@@ -9901,8 +10129,8 @@ window._itmRenderRow = function(it, idx) {
     +'<td style="width:30px;text-align:center" onclick="event.stopPropagation()"><input type="checkbox" style="cursor:pointer"></td>'
     +'<td style="width:30px;text-align:center;font-size:12px;color:var(--muted)">'+(idx+1)+'</td>'
     +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(it.client||'<span style="color:var(--muted)">—</span>')+'</td>'
-    +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-size:12px;color:var(--muted)">'+it.code+'</td>'
-    +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:700;color:#4361ee;text-decoration:underline;cursor:pointer">'+it.name+'</td>'
+    +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:700;color:#4361ee;text-decoration:underline;cursor:pointer">'+it.code+'</td>'
+    +'<td onclick="_openItemDetail(\''+it.code+'\')" style="font-weight:500;color:var(--txt)">'+it.name+'</td>'
     +'<td style="font-size:11.5px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
       +(it.link ? '<a href="'+it.link+'" target="_blank" onclick="event.stopPropagation()" style="color:#2563eb;text-decoration:underline">'+linkTxt+'</a>' : '<span style="color:var(--muted)">—</span>')
     +'</td>'

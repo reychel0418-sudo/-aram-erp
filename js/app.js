@@ -97,8 +97,8 @@
     const target = document.getElementById('page-' + name);
     if (!target) return;
 
-    /* 3) 렌더링 — menu 페이지는 최근방문이 바뀔 수 있어 매번 재렌더 */
-    const alwaysRender = (name === 'menu');
+    /* 3) 렌더링 — menu·inventory 는 매번 재렌더 (재고는 품목등록 변경을 실시간 반영) */
+    const alwaysRender = (name === 'menu' || name === 'inventory');
     if (!target.dataset.rendered || alwaysRender) {
       const renderer = window.ARAM_PAGES && window.ARAM_PAGES[_normKey(name)];
       if (renderer) {
