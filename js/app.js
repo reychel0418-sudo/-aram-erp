@@ -71,8 +71,8 @@
   const PAGE_TITLES = {
     dashboard          : '대시보드',
     menu               : '전체 메뉴',
-    'sales-orders'     : '수주관리',
-    'sales-order-detail': '수주 상세',
+    'sales-orders'     : '주문관리',
+    'sales-order-detail': '주문 상세',
     'design-dtp'       : 'DTP 디자인',
     'design-emb'       : '자수 디자인',
     'production-dtp'   : 'DTP 생산',
@@ -98,7 +98,7 @@
     if (!target) return;
 
     /* 3) 렌더링 — menu·inventory 는 매번 재렌더 (재고는 품목등록 변경을 실시간 반영) */
-    const alwaysRender = (name === 'menu' || name === 'inventory');
+    const alwaysRender = (name === 'menu' || name === 'inventory' || name === 'sales-orders');
     if (!target.dataset.rendered || alwaysRender) {
       const renderer = window.ARAM_PAGES && window.ARAM_PAGES[_normKey(name)];
       if (renderer) {
@@ -254,7 +254,7 @@
       { key: '?',         desc: '단축키 도움말' },
       { key: 'Esc',       desc: '오버레이 닫기' },
       { key: 'Alt + D',  desc: '대시보드' },
-      { key: 'Alt + S',  desc: '수주관리' },
+      { key: 'Alt + S',  desc: '주문관리' },
       { key: 'Alt + P',  desc: 'DTP 생산' },
       { key: 'Alt + I',  desc: '재고현황' },
       { key: 'Alt + F',  desc: '재무관리' },
@@ -600,7 +600,7 @@
   }
 
   /* ──────────────────────────────────────────
-     9. 수주관리 – 필터 / 검색
+     9. 주문관리 – 필터 / 검색
   ────────────────────────────────────────── */
   function _initSalesOrders() {
     window.filterOrders = function (status) {

@@ -45,7 +45,7 @@ window.ARAM_PAGES = {
     <div class="stat-grid">
       ${kpis.map((k,i)=>{
         const pages=['finance','sales-orders','production-dtp','inventory'];
-        const tips=['재무관리','수주관리','생산관리','재고관리'];
+        const tips=['재무관리','주문관리','생산관리','재고관리'];
         return `
       <div class="stat-card" style="cursor:pointer;position:relative;transition:box-shadow .15s,transform .15s"
         onclick="goPage('${pages[i]}')"
@@ -188,11 +188,11 @@ window.ARAM_PAGES = {
         </div>
         <div class="card-body" style="padding:0">
           ${[
-            {day:'월 (19)', events:[{type:'수주','color':'#4361ee',text:'SO-2026-0091 납기일'},]},
+            {day:'월 (19)', events:[{type:'주문','color':'#4361ee',text:'SO-2026-0091 납기일'},]},
             {day:'화 (20)', events:[{type:'생산',color:'#10b981',text:'WO-DTP-0234 완료예정'},{type:'품질',color:'#8b5cf6',text:'EMB 라인 품질검사'}]},
             {day:'수 (21)', events:[{type:'회의',color:'#f59e0b',text:'전사 경영회의 15:00'}]},
             {day:'목 (22)', events:[{type:'납품',color:'#4361ee',text:'삼성물산 납품 예정'},{type:'발주',color:'#ef4444',text:'DMC 실 긴급 발주'}]},
-            {day:'금 (23)', events:[{type:'수주',color:'#4361ee',text:'SO-2026-0089 납기일'},{type:'급여',color:'#14b8a6',text:'5월 급여 지급'}]},
+            {day:'금 (23)', events:[{type:'주문',color:'#4361ee',text:'SO-2026-0089 납기일'},{type:'급여',color:'#14b8a6',text:'5월 급여 지급'}]},
           ].map((d,i)=>`
           <div style="display:flex;gap:0;border-bottom:1px solid var(--bdr);${i===1?'background:var(--primary-lt)':''}">
             <div style="width:64px;padding:10px 12px;font-size:12px;font-weight:${i===1?'700':'500'};color:${i===1?'var(--primary)':'var(--muted)'};border-right:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:flex-start">
@@ -221,7 +221,7 @@ window.ARAM_PAGES = {
         </div>
         <div class="card-body" style="padding:6px 0;max-height:340px;overflow-y:auto">
           ${[
-            {user:'김민수 과장',action:'수주 등록',target:'SO-2026-0091',time:'방금 전',icon:'📝',color:'#4361ee'},
+            {user:'김민수 과장',action:'주문 등록',target:'SO-2026-0091',time:'방금 전',icon:'📝',color:'#4361ee'},
             {user:'박지영 대리',action:'파일 업로드',target:'디자인시안_0234.ai',time:'5분 전',icon:'📎',color:'#8b5cf6'},
             {user:'이자수 사원',action:'작업지시 상태 변경',target:'WO-EMB-0156 → 도안승인대기',time:'12분 전',icon:'🔄',color:'#f59e0b'},
             {user:'최영훈 대리',action:'재고 입고 처리',target:'DMC-321 Navy 500m',time:'28분 전',icon:'📦',color:'#10b981'},
@@ -266,7 +266,7 @@ window.ARAM_PAGES = {
         items:[{l:'메인',p:'dashboard'},{l:'내업무',p:'dashboard'},{l:'즐겨찾기',p:'menu'},{l:'최근방문',p:'menu'}] },
       { num:2,  title:'영업/주문관리',     page:'sales-orders',
         icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>',
-        items:[{l:'거래처관리',p:'sales-clients'},{l:'품목등록',p:'sales-items'},{l:'견적관리',p:'sales-orders'},{l:'수주관리',p:'sales-orders'},{l:'출하관리',p:'sales-orders'},{l:'매출관리',p:'finance'},{l:'CRM',p:'sales-orders'}] },
+        items:[{l:'거래처관리',p:'sales-clients'},{l:'품목등록',p:'sales-items'},{l:'견적관리',p:'sales-orders'},{l:'주문관리',p:'sales-orders'},{l:'출하관리',p:'sales-orders'},{l:'매출관리',p:'finance'},{l:'CRM',p:'sales-orders'}] },
       { num:3,  title:'디자인팀',          page:'design-dtp',
         icon:'<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/>',
         items:[{l:'DTP 디자인',p:'design-dtp'},{l:'자수 디자인',p:'design-emb'},{l:'거래처별 모음',p:'design-dtp'},{l:'대기건 대시보드',p:'design-dtp'},{l:'디자인 자료',p:'design-dtp'}] },
@@ -1052,6 +1052,10 @@ window.ARAM_PAGES = {
           style="padding:7px 9px;font-size:11px;font-weight:700;background:#3451cc;color:#fff;border:none;border-left:1px solid rgba(255,255,255,.3);border-radius:0 6px 6px 0;cursor:pointer">▲</button>
       </div>
 
+      <!-- 웹업로드 (엑셀 대량등록) -->
+      <button onclick="window._openClientXlsUpload()"
+        style="padding:7px 13px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer;white-space:nowrap">📊 웹업로드</button>
+
       <!-- 관계설정 -->
       <button onclick="_cliRelation()"
         style="padding:7px 13px;font-size:12.5px;font-weight:600;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer;white-space:nowrap">관계설정</button>
@@ -1342,10 +1346,10 @@ window.ARAM_PAGES = {
   },
 
   /* ══════════════════════════════════
-     수주관리 목록
+     주문관리 목록
   ══════════════════════════════════ */
   'sales-orders'() {
-    const orders = window.ARAM_DATA.salesOrders;
+    const orders = (window._ordersDB||[]).concat(window.ARAM_DATA.salesOrders);
     const statusBadge = s => ({
       '진행중':'badge badge-solid-blue','접수':'badge badge-solid-gray','완료':'badge badge-solid-green','취소':'badge badge-red'
     })[s]||'badge badge-gray';
@@ -1353,15 +1357,15 @@ window.ARAM_PAGES = {
     <div class="page-header">
       <div class="flex-between">
         <div>
-          <div class="page-title">수주관리</div>
+          <div class="page-title">주문관리</div>
           <div class="page-desc">견적 → 계약 → 생산 → 납품 전체 워크플로우 관리</div>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('수주관리')">CSV ↓</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('주문관리')">CSV ↓</button>
           <button class="btn btn-secondary btn-sm" onclick="printPage()">🖨 인쇄</button>
-          <button class="btn btn-primary" onclick="if(window.ARAM_UI) ARAM_UI.openNewOrderModal()">
+          <button class="btn btn-primary" onclick="window._openOrderEntry && window._openOrderEntry()">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            신규 수주
+            신규 주문
           </button>
         </div>
       </div>
@@ -1369,13 +1373,13 @@ window.ARAM_PAGES = {
 
     <!-- Tabs -->
     <div class="tab-bar mb-16">
-      <button class="tab-btn active" onclick="switchTab(this,'so-tab-0')">수주현황</button>
+      <button class="tab-btn active" onclick="switchTab(this,'so-tab-0')">주문현황</button>
       <button class="tab-btn" onclick="switchTab(this,'so-tab-1')">견적관리</button>
       <button class="tab-btn" onclick="switchTab(this,'so-tab-2')">계약관리</button>
       <button class="tab-btn" onclick="switchTab(this,'so-tab-3')">납품현황</button>
     </div>
 
-    <!-- Tab 0: 수주현황 (기존) -->
+    <!-- Tab 0: 주문현황 (기존) -->
     <div id="so-tab-0">
 
     <!-- Filters -->
@@ -1397,7 +1401,7 @@ window.ARAM_PAGES = {
     <!-- Stats -->
     <div class="stat-grid mb-16">
       ${[
-        ['총 수주','87건','#4361ee'],
+        ['총 주문','87건','#4361ee'],
         ['진행중','42건','#3b82f6'],
         ['이번주 신규','18건','#10b981'],
         ['금액 합계','₩12.5억','#8b5cf6'],
@@ -1414,7 +1418,7 @@ window.ARAM_PAGES = {
         <table>
           <thead><tr>
             <th class="checkbox-cell"><input type="checkbox"></th>
-            <th>수주번호</th><th>거래처명</th><th>품목</th>
+            <th>주문번호</th><th>거래처명</th><th>품목</th>
             <th>수량</th><th>단가</th><th class="td-right">금액</th>
             <th>납기일</th><th>진행률</th><th style="text-align:center">상태</th><th>담당자</th><th>액션</th>
           </tr></thead>
@@ -1426,8 +1430,8 @@ window.ARAM_PAGES = {
               <td>${o.client}</td>
               <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${o.product}</td>
               <td>${o.qty}</td>
-              <td>₩${Number(o.price).toLocaleString()}</td>
-              <td class="td-right">₩${Number(o.total).toLocaleString()}</td>
+              <td>${o.price?('₩'+(Number(String(o.price).replace(/,/g,''))||0).toLocaleString()):'-'}</td>
+              <td class="td-right">₩${(Number(String(o.total).replace(/,/g,''))||0).toLocaleString()}</td>
               <td>${o.due}</td>
               <td style="min-width:100px">
                 <div style="display:flex;align-items:center;gap:8px">
@@ -1516,7 +1520,7 @@ window.ARAM_PAGES = {
                     <button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px"
                       onclick="if(window.ARAM_UI)ARAM_UI.Toast.info('견적서 PDF 다운로드')">PDF</button>
                     ${r.status==='견적확정'?`<button class="btn btn-primary btn-sm" style="height:26px;font-size:11px;padding:0 8px"
-                      onclick="if(window.ARAM_UI)ARAM_UI.Toast.info('수주로 전환: ${r.no}')">→ 수주</button>`:''}
+                      onclick="if(window.ARAM_UI)ARAM_UI.Toast.info('주문로 전환: ${r.no}')">→ 주문</button>`:''}
                   </div>
                 </td>
               </tr>`).join('')}
@@ -1592,7 +1596,7 @@ window.ARAM_PAGES = {
         <span style="color:#9ba8c0">~</span>
         <input type="date" class="form-input" value="2026-05-31" style="width:140px">
         ${['전체','납품대기','납품중','납품완료','반품'].map((s,i)=>`<button class="btn ${i===0?'btn-primary':'btn-secondary'} btn-sm">${s}</button>`).join('')}
-        <input class="form-input" placeholder="🔍 수주번호·거래처 검색" style="flex:1;max-width:220px">
+        <input class="form-input" placeholder="🔍 주문번호·거래처 검색" style="flex:1;max-width:220px">
         <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('납품현황')">CSV ↓</button>
       </div>
       <div class="card">
@@ -1600,7 +1604,7 @@ window.ARAM_PAGES = {
           <table>
             <thead><tr>
               <th><input type="checkbox"></th>
-              <th>수주번호</th><th>거래처명</th><th>납품품목</th>
+              <th>주문번호</th><th>거래처명</th><th>납품품목</th>
               <th class="td-right">납품수량</th><th>예정일</th><th>실제납품일</th>
               <th>납품지</th><th>운송방법</th><th>상태</th><th>액션</th>
             </tr></thead>
@@ -1641,7 +1645,7 @@ window.ARAM_PAGES = {
   },
 
   /* ══════════════════════════════════
-     수주 상세
+     주문 상세
   ══════════════════════════════════ */
   'sales-order-detail'() {
     const d = window.ARAM_DATA.orderDetail;
@@ -1653,7 +1657,7 @@ window.ARAM_PAGES = {
         <div class="detail-header-card">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
-              <div style="font-size:12px;color:#9ba8c0;margin-bottom:6px">수주번호</div>
+              <div style="font-size:12px;color:#9ba8c0;margin-bottom:6px">주문번호</div>
               <div class="order-num">
                 ${d.no}
                 <span class="badge badge-solid-blue">${d.status}</span>
@@ -1661,8 +1665,8 @@ window.ARAM_PAGES = {
             </div>
             <div class="detail-actions">
               <button class="btn btn-secondary btn-sm" onclick="printPage('.detail-layout')">🖨 출력</button>
-              <button class="btn btn-secondary btn-sm" onclick="if(window.ARAM_UI) ARAM_UI.Toast.info('수주 복제 기능은 준비 중입니다.')">⎘ 복제</button>
-              <button class="btn btn-secondary btn-sm" style="color:#ef4444;border-color:#fecaca" onclick="if(window.ARAM_UI) ARAM_UI.Modal.open({title:'수주 취소',body:'<p style=\'text-align:center;padding:8px 0;color:#525f7f;font-size:14px\'>수주 <strong>'+window.ARAM_DATA.orderDetail.no+'</strong>를<br>취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>',size:\'sm\',footer:[{label:\'닫기\',type:\'secondary\',onClick:c=>c()},{label:\'수주 취소\',type:\'danger\',onClick:c=>{c();ARAM_UI.Toast.error(\'수주가 취소되었습니다.\')}}]})">✕ 취소</button>
+              <button class="btn btn-secondary btn-sm" onclick="if(window.ARAM_UI) ARAM_UI.Toast.info('주문 복제 기능은 준비 중입니다.')">⎘ 복제</button>
+              <button class="btn btn-secondary btn-sm" style="color:#ef4444;border-color:#fecaca" onclick="if(window.ARAM_UI) ARAM_UI.Modal.open({title:'주문 취소',body:'<p style=\'text-align:center;padding:8px 0;color:#525f7f;font-size:14px\'>주문 <strong>'+window.ARAM_DATA.orderDetail.no+'</strong>를<br>취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>',size:\'sm\',footer:[{label:\'닫기\',type:\'secondary\',onClick:c=>c()},{label:\'주문 취소\',type:\'danger\',onClick:c=>{c();ARAM_UI.Toast.error(\'주문가 취소되었습니다.\')}}]})">✕ 취소</button>
               <button class="btn btn-primary btn-sm">✏ 수정</button>
             </div>
           </div>
@@ -1733,7 +1737,7 @@ window.ARAM_PAGES = {
           </div>
           <div id="detail-tab-2" style="display:none" class="card-body">
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-              ${[['수주수량','15,000m','🎯'],['생산완료','9,750m','✅'],['진행률','65%','📊'],['불량수량','0m','✨'],['납기','${d.due}','📅'],['담당','김생산','👤']].map(([l,v,i])=>`
+              ${[['주문수량','15,000m','🎯'],['생산완료','9,750m','✅'],['진행률','65%','📊'],['불량수량','0m','✨'],['납기','${d.due}','📅'],['담당','김생산','👤']].map(([l,v,i])=>`
               <div style="background:#f8f9fc;border-radius:10px;padding:14px;text-align:center">
                 <div style="font-size:20px;margin-bottom:6px">${i}</div>
                 <div style="font-size:11.5px;color:#9ba8c0;margin-bottom:4px">${l}</div>
@@ -1768,12 +1772,12 @@ window.ARAM_PAGES = {
             </div>`).join('')}
           </div>
           <div id="detail-tab-4" style="display:none" class="card-body">
-            <div style="font-size:13.5px;color:#9ba8c0;margin-bottom:12px">수주 등록부터 현재까지 변경 이력</div>
+            <div style="font-size:13.5px;color:#9ba8c0;margin-bottom:12px">주문 등록부터 현재까지 변경 이력</div>
             ${[
               {date:'2026-05-24 14:22',user:'김영업',action:'상태 변경','detail':'생산중 → 진행중','color':'#4361ee'},
               {date:'2026-05-22 10:15',user:'박생산',action:'생산지시','detail':'WO-DTP-2026-0234 작업지시 발행','color':'#10b981'},
-              {date:'2026-05-20 09:33',user:'이수진',action:'수주 확인','detail':'납기 및 수량 검토 완료','color':'#8b5cf6'},
-              {date:'2026-05-18 16:41',user:'김영업',action:'수주 등록','detail':'ORD-2026-0871 신규 등록','color':'#f59e0b'},
+              {date:'2026-05-20 09:33',user:'이수진',action:'주문 확인','detail':'납기 및 수량 검토 완료','color':'#8b5cf6'},
+              {date:'2026-05-18 16:41',user:'김영업',action:'주문 등록','detail':'ORD-2026-0871 신규 등록','color':'#f59e0b'},
             ].map(h=>`
             <div style="display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #f2f4f8">
               <div style="font-size:12px;color:#9ba8c0;width:140px;flex-shrink:0">${h.date}</div>
@@ -2063,7 +2067,7 @@ window.ARAM_PAGES = {
         ${['전체','대기','진행중','완료','보류'].map((s,i)=>`
         <span style="padding:4px 12px;border-radius:4px;font-size:12.5px;cursor:pointer;background:${i===0?'#4361ee':'transparent'};color:${i===0?'#fff':'#6b7a99'};border:1.5px solid ${i===0?'#4361ee':'transparent'}">${s}</span>`).join('')}
         <div class="filter-actions">
-          <input class="form-input" placeholder="작업지시번호, 수주번호 검색" style="width:220px">
+          <input class="form-input" placeholder="작업지시번호, 주문번호 검색" style="width:220px">
           <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('DTP작업지시')">CSV ↓</button>
         </div>
       </div>
@@ -2073,7 +2077,7 @@ window.ARAM_PAGES = {
           <table>
             <thead><tr>
               <th class="checkbox-cell"><input type="checkbox"></th>
-              <th>작업지시번호</th><th>연결 수주</th><th>품목명</th>
+              <th>작업지시번호</th><th>연결 주문</th><th>품목명</th>
               <th>담당자</th><th class="td-right">수량</th>
               <th>시작일</th><th>완료예정일</th>
               <th class="td-center">진행률</th><th class="td-center">상태</th>
@@ -2582,7 +2586,7 @@ window.ARAM_PAGES = {
           <table>
             <thead><tr>
               <th><input type="checkbox"></th>
-              <th>작업번호</th><th>연결수주</th><th>품목명</th><th>담당자</th>
+              <th>작업번호</th><th>연결주문</th><th>품목명</th><th>담당자</th>
               <th class="td-right">수량</th><th>시작일</th><th>완료예정</th>
               <th style="min-width:120px">진행률</th><th>상태</th><th>액션</th>
             </tr></thead>
@@ -2950,7 +2954,7 @@ window.ARAM_PAGES = {
           <table>
             <thead><tr>
               <th><input type="checkbox"></th>
-              <th>작업번호</th><th>연결수주</th><th>품목명</th><th>담당자</th>
+              <th>작업번호</th><th>연결주문</th><th>품목명</th><th>담당자</th>
               <th class="td-right">수량</th><th>시작일</th><th>완료예정</th>
               <th style="min-width:120px">진행률</th><th>상태</th><th>액션</th>
             </tr></thead>
@@ -5469,7 +5473,7 @@ window.ARAM_PAGES = {
             <tbody>
               ${[
                 {menu:'대시보드',perms:[[1,1,1,1],[1,1,1,0],[1,0,0,0],[1,0,0,0]]},
-                {menu:'수주관리',perms:[[1,1,1,1],[1,1,1,0],[1,0,0,0],[0,0,0,0]]},
+                {menu:'주문관리',perms:[[1,1,1,1],[1,1,1,0],[1,0,0,0],[0,0,0,0]]},
                 {menu:'생산관리',perms:[[1,1,1,1],[1,1,1,0],[1,0,0,0],[0,0,0,0]]},
                 {menu:'재고관리',perms:[[1,1,1,1],[1,1,1,0],[1,0,0,0],[1,0,0,0]]},
                 {menu:'재무관리',perms:[[1,1,1,1],[1,1,0,0],[1,0,0,0],[0,0,0,0]]},
@@ -5504,7 +5508,7 @@ window.ARAM_PAGES = {
           <div style="padding:8px 0">
             ${[
               {icon:'📊',label:'대시보드',path:'/dashboard',active:true,sub:[]},
-              {icon:'📋',label:'수주관리',path:'/sales',active:true,sub:['수주목록','수주상세']},
+              {icon:'📋',label:'주문관리',path:'/sales',active:true,sub:['주문목록','주문상세']},
               {icon:'🏭',label:'생산관리',path:'/production',active:true,sub:['DTP생산','자수생산','품질검사']},
               {icon:'📦',label:'재고관리',path:'/inventory',active:true,sub:[]},
               {icon:'🧵',label:'FabricHub',path:'/fabric',active:true,sub:[]},
@@ -6947,7 +6951,7 @@ window._openClientDetail = function(code) {
       +'</div>'
     + '<div style="padding:6px 0 2px;font-size:11px;color:var(--muted)">※ 거래처 전용 사이트 접속용. (보안 적용은 추후 서버 연동 시)</div>'
     + secHead('재무 정보')
-    + inRow('수주 잔액', 'bal', c.bal, 'text')
+    + inRow('주문 잔액', 'bal', c.bal, 'text')
     + secHead('메모')
     + '<div style="padding:6px 0 4px">'
     + '<textarea id="_cdf_memo" rows="3" style="width:100%;padding:8px 11px;border:1.5px solid var(--bdr);border-radius:6px;background:var(--bg);color:var(--txt);font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6;outline:none" onfocus="this.style.borderColor=\'#4361ee\'" onblur="this.style.borderColor=\'var(--bdr)\'">'+ea(c.memo||'')+'</textarea>'
@@ -7032,8 +7036,8 @@ window._openClientDetail = function(code) {
         /* H (전표이력) */
         +'<button id="_cdf_hist" title="전표 이력 보기" style="padding:7px 11px;font-size:12.5px;font-weight:700;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;cursor:pointer">H</button>'
 
-        /* 수주내역 보기 (우측) */
-        +'<button id="_cdf_order" style="margin-left:auto;padding:7px 15px;font-size:12.5px;font-weight:700;background:#1e2b4a;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">수주 내역 보기</button>'
+        /* 주문내역 보기 (우측) */
+        +'<button id="_cdf_order" style="margin-left:auto;padding:7px 15px;font-size:12.5px;font-weight:700;background:#1e2b4a;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">주문 내역 보기</button>'
 
       +'</div>'
     +'</div>';
@@ -7407,7 +7411,7 @@ window._openClientDetail = function(code) {
       footer:[{label:'닫기', type:'secondary', onClick:function(cl){ cl(); }}] });
   };
 
-  /* 수주내역 보기 */
+  /* 주문내역 보기 */
   document.getElementById('_cdf_order').onclick = function(){
     closeDlg();
     if(window.goPage) window.goPage('sales-orders');
@@ -8376,7 +8380,7 @@ window._aramFillGongjeongPrice = function(prefix){
 /* ═══════════════════════════════════════════════════
    📊 엑셀 대량 품목등록 (웹업로드)
 ═══════════════════════════════════════════════════ */
-window._aramItemXlsHeaders = ['품목코드','품목명','사업구분','품목유형','단위','거래처','입고단가','출고단가','재고','규격','롯트','컬러','보관위치','입고날짜','링크','메모'];
+window._aramItemXlsHeaders = ['품목코드','품목명','사업구분','품목유형','소유구분','단위','거래처','입고단가','출고단가','재고','규격','롯트','컬러','보관위치','입고날짜','링크','메모'];
 
 /* SheetJS(xlsx) 동적 로드 */
 function _aramLoadSheetJS(cb){
@@ -8391,7 +8395,7 @@ function _aramLoadSheetJS(cb){
 /* 양식(템플릿) CSV 다운로드 */
 window._aramDownloadItemTemplate = function(){
   var headers = window._aramItemXlsHeaders;
-  var sample  = ['FAB-001','플라워 원단','DTP','원단','야드(Y)','지성텍스(주)','3200','3500','100','60수 혼방','#3','5','A동 3번랙','2026-06-28','https://example.com','샘플메모'];
+  var sample  = ['FAB-001','플라워 원단','DTP','원단','아람원단','야드(Y)','지성텍스(주)','3200','3500','100','60수 혼방','#3','5','A동 3번랙','2026-06-28','https://example.com','샘플메모'];
   var csv = '﻿' + headers.join(',') + '\n' + sample.join(',') + '\n';
   var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   var a = document.createElement('a');
@@ -8421,6 +8425,7 @@ window._aramProcessItemRows = function(rows){
       name: name,
       cat: str(r['사업구분']),
       itemType: str(r['품목유형']),
+      owner: str(r['소유구분'])||'아람원단',
       unit: str(r['단위']),
       client: str(r['거래처']),
       inPrice: inP ? Number(inP).toLocaleString() : '',
@@ -8498,6 +8503,250 @@ window._openItemXlsUpload = function(){
     +'</div></div>';
   ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
+};
+
+/* ═══════════════════════════════════════════════════
+   📊 엑셀 대량 거래처등록 (웹업로드)
+═══════════════════════════════════════════════════ */
+window._aramClientXlsHeaders = ['사업자등록번호','상호','대표자명','종사업장번호','업태','종목','전화','Fax','이메일','모바일','주소','상세주소','단가적용','청구마감일자','통화','회사구분','거래처그룹1','거래처그룹2','검색내용','홈페이지','로그인아이디','비밀번호'];
+
+window._aramDownloadClientTemplate = function(){
+  var headers = window._aramClientXlsHeaders;
+  var sample  = ['123-45-67890','지성텍스(주)','김지성','','제조','섬유','031-123-4567','','jisung@test.co.kr','010-1234-5678','경기도 수원시 팔달구','101호','공정단가','25','KRW(내지)','법인','','','','https://jisung.co.kr','jisung','1234'];
+  var csv = '﻿' + headers.join(',') + '\n' + sample.join(',') + '\n';
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '거래처등록_양식.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  if(window.ARAM_UI) ARAM_UI.Toast.success('양식 다운로드 완료 — 엑셀로 열어 작성 후 업로드하세요.');
+};
+
+window._aramProcessClientRows = function(rows){
+  if(!rows || !rows.length){ if(window.ARAM_UI) ARAM_UI.Toast.error('업로드할 데이터가 없습니다.'); return; }
+  if(!window._clientsDB) window._clientsDB = [];
+  var str = function(v){ return String(v==null?'':v).trim(); };
+  var today = new Date().toISOString().slice(0,10);
+  var fmtBiz = function(v){ var d=String(v||'').replace(/[^0-9]/g,'').slice(0,10); if(d.length>5) return d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5); if(d.length>3) return d.slice(0,3)+'-'+d.slice(3); return d; };
+  var nextCode = function(){ var n=(window._clientsDB||[]).length+1; var c='C'+String(n).padStart(4,'0'); while((window._clientsDB||[]).some(function(x){return x.code===c;})){ n++; c='C'+String(n).padStart(4,'0'); } return c; };
+  var added=0, skipped=0, dup=0;
+  rows.forEach(function(r){
+    var name=str(r['상호']); if(!name){ skipped++; return; }
+    var biz = str(r['사업자등록번호']) ? fmtBiz(r['사업자등록번호']) : '';
+    var code = biz || nextCode();
+    if((window._clientsDB||[]).some(function(x){ return x.code===code; })){ dup++; return; }
+    window._clientsDB.push({
+      code: code, bizNo: biz, name: name, type:'내수', mgr:'',
+      rep: str(r['대표자명']), bizsub: str(r['종사업장번호']),
+      biztype: str(r['업태']), bizitem: str(r['종목']),
+      tel: str(r['전화']), fax: str(r['Fax']), email: str(r['이메일']), mobile: str(r['모바일']),
+      region:'', addr: str(r['주소']), addrdetail1: str(r['상세주소']),
+      bal:'0', joined: today, status:'활성',
+      price: str(r['단가적용']), due: str(r['청구마감일자']), currency: str(r['통화'])||'KRW(내지)',
+      bizDiv: str(r['회사구분'])||'법인',
+      grp1: str(r['거래처그룹1']), grp2: str(r['거래처그룹2']),
+      search: str(r['검색내용']), web: str(r['홈페이지']), memo:'',
+      loginId: str(r['로그인아이디']), loginPw: str(r['비밀번호']),
+      gongjeong:[]
+    });
+    added++;
+  });
+  if(window._saveClients) window._saveClients();
+  if(window._cliRerender) window._cliRerender();
+  if(window.ARAM_UI) ARAM_UI.Toast.success(added+'개 거래처 대량등록 완료'+((skipped||dup)?(' (건너뜀 — 상호없음 '+skipped+'개, 코드중복 '+dup+'개)'):''));
+};
+
+window._aramDoClientXlsUpload = function(){
+  var fileEl=document.getElementById('aram-cxls-file');
+  var statusEl=document.getElementById('aram-cxls-status');
+  if(!fileEl || !fileEl.files || !fileEl.files.length){ if(window.ARAM_UI) ARAM_UI.Toast.error('파일을 먼저 선택하세요.'); return; }
+  var file=fileEl.files[0];
+  if(statusEl) statusEl.textContent='엑셀 모듈 불러오는 중…';
+  _aramLoadSheetJS(function(){
+    if(statusEl) statusEl.textContent='파일 분석 중…';
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        window._aramProcessClientRows(rows);
+        var o=document.getElementById('aram-cxls-ov'); if(o) o.remove();
+      }catch(err){
+        if(window.ARAM_UI) ARAM_UI.Toast.error('파일 분석 실패: '+err.message);
+        if(statusEl) statusEl.textContent='분석 실패 — 양식을 확인하세요.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+window._openClientXlsUpload = function(){
+  var old=document.getElementById('aram-cxls-ov'); if(old) old.remove();
+  var ov=document.createElement('div');
+  ov.id='aram-cxls-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML=
+    '<div style="background:#fff;border-radius:12px;width:560px;max-width:95vw;box-shadow:0 24px 72px rgba(0,0,0,.3);overflow:hidden">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#1e2b4a;color:#fff">'
+      +'<span style="font-size:15px;font-weight:800">📊 엑셀 대량 거래처등록 (웹업로드)</span>'
+      +'<button onclick="var o=document.getElementById(\'aram-cxls-ov\');if(o)o.remove();" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer">✕</button>'
+    +'</div>'
+    +'<div style="padding:20px">'
+      +'<ol style="font-size:13px;color:#475569;line-height:1.9;padding-left:18px;margin:0 0 14px">'
+        +'<li><b>양식 다운로드</b> → 엑셀로 열어 거래처 작성</li>'
+        +'<li>엑셀(.xlsx) 또는 CSV로 저장</li>'
+        +'<li>아래에서 파일 선택 → <b>업로드</b></li>'
+      +'</ol>'
+      +'<button onclick="window._aramDownloadClientTemplate()" style="width:100%;padding:10px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">⬇ 양식(템플릿) 다운로드</button>'
+      +'<div style="border:2px dashed #cbd5e1;border-radius:10px;padding:18px;text-align:center;background:#f8fafc">'
+        +'<input type="file" id="aram-cxls-file" accept=".xlsx,.xls,.csv" style="font-size:13px">'
+        +'<div style="font-size:11px;color:#94a3b8;margin-top:8px">엑셀(.xlsx/.xls) 또는 CSV 파일</div>'
+      +'</div>'
+      +'<div id="aram-cxls-status" style="font-size:12px;color:#64748b;margin-top:10px;text-align:center"></div>'
+      +'<button onclick="window._aramDoClientXlsUpload()" style="width:100%;padding:11px;background:#4361ee;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">📤 업로드 (대량 등록)</button>'
+      +'<div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.6">※ <b>필수</b>: 상호 &nbsp; ※ 컬럼: '+window._aramClientXlsHeaders.join(', ')+'</div>'
+    +'</div></div>';
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
+
+/* ═══════════════════════════════════════════════════
+   📝 주문서입력 (여러 줄 그리드) + 주문 데이터(_ordersDB)
+═══════════════════════════════════════════════════ */
+(function(){ try{ var s=localStorage.getItem('aram_orders'); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) window._ordersDB=a; } }catch(e){} })();
+window._ordersDB = window._ordersDB || [];
+window._saveOrders = function(){ try{ localStorage.setItem('aram_orders', JSON.stringify(window._ordersDB||[])); }catch(e){} };
+window._nextOrderNo = function(){
+  var y=new Date().getFullYear(), max=0;
+  (window._ordersDB||[]).forEach(function(o){ var m=(o.no||'').match(/(\d+)$/); if(m){var n=parseInt(m[1],10); if(n>max)max=n;} });
+  return 'ORD-'+y+'-'+String(max+1).padStart(4,'0');
+};
+window._orderRowHtml = function(){
+  var inp='padding:4px 6px;border:1px solid var(--bdr);border-radius:4px;background:var(--bg);color:var(--txt);font-size:12px;width:100%;box-sizing:border-box;outline:none';
+  var ro=inp+';background:#f1f5f9';
+  return '<tr>'
+    +'<td style="padding:2px"><input class="od-code" onchange="_orderRowFill(this)" placeholder="원단코드" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-name" readonly placeholder="(자동)" style="'+ro+'"></td>'
+    +'<td style="padding:2px"><input class="od-color" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-qty" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" style="'+inp+';text-align:right"></td>'
+    +'<td style="padding:2px"><input class="od-price" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" style="'+inp+';text-align:right"></td>'
+    +'<td style="padding:2px"><input class="od-supply" readonly style="'+ro+';text-align:right"></td>'
+    +'<td style="padding:2px"><input class="od-vat" readonly style="'+ro+';text-align:right"></td>'
+    +'<td style="padding:2px"><input class="od-wcolor" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-tcolor" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-factory" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-out" style="'+inp+'"></td>'
+    +'<td style="padding:2px;text-align:center"><button type="button" onclick="this.closest(\'tr\').remove();_orderRecalcTotals()" style="background:#ef4444;color:#fff;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:11px">×</button></td>'
+  +'</tr>';
+};
+window._orderRowFill = function(inp){
+  var tr=inp.closest('tr'); var code=inp.value.trim();
+  var it=(window._itemsDB||[]).find(function(x){return x.code===code;});
+  if(!it){ if(code&&window.ARAM_UI) ARAM_UI.Toast.info('품목코드 ['+code+']를 찾을 수 없습니다.'); return; }
+  tr.querySelector('.od-name').value=it.name||'';
+  tr.querySelector('.od-color').value=it.colorId||'';
+  var price=(it.owner==='거래처원단')?0:(parseInt(String(it.outPrice||it.price||'').replace(/,/g,''))||0);
+  tr.querySelector('.od-price').value=price;
+  if(it.owner==='거래처원단'&&window.ARAM_UI) ARAM_UI.Toast.info(it.name+' = 거래처원단 → 단가 0 (가공비 별도)');
+  _orderRowCalc(tr);
+};
+window._orderRowCalc = function(tr){
+  var qty=parseFloat(tr.querySelector('.od-qty').value)||0;
+  var price=parseFloat(tr.querySelector('.od-price').value)||0;
+  var supply=Math.round(qty*price);
+  var taxEl=document.getElementById('od-taxtype');
+  var vat=(taxEl&&taxEl.value==='면세')?0:Math.round(supply*0.1);
+  tr.querySelector('.od-supply').value=supply.toLocaleString();
+  tr.querySelector('.od-vat').value=vat.toLocaleString();
+  _orderRecalcTotals();
+};
+window._orderRecalcTotals = function(){
+  var tq=0,ts=0,tv=0;
+  document.querySelectorAll('#od-tbody tr').forEach(function(tr){
+    tq+=parseFloat(tr.querySelector('.od-qty').value)||0;
+    ts+=parseInt((tr.querySelector('.od-supply').value||'0').replace(/,/g,''))||0;
+    tv+=parseInt((tr.querySelector('.od-vat').value||'0').replace(/,/g,''))||0;
+  });
+  var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v.toLocaleString();};
+  set('od-tot-qty',tq); set('od-tot-supply',ts); set('od-tot-vat',tv); set('od-tot-amount',ts+tv);
+};
+window._orderAddRow = function(){ var tb=document.getElementById('od-tbody'); if(tb) tb.insertAdjacentHTML('beforeend', window._orderRowHtml()); };
+window._orderSave = function(){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var client=g('od-client'); if(!client){ if(window.ARAM_UI)ARAM_UI.Toast.error('거래처를 선택하세요.'); return; }
+  var lines=[];
+  document.querySelectorAll('#od-tbody tr').forEach(function(tr){
+    var code=tr.querySelector('.od-code').value.trim();
+    var qty=parseFloat(tr.querySelector('.od-qty').value)||0;
+    if(!code||!qty) return;
+    var num=function(c){return parseInt((tr.querySelector(c).value||'0').replace(/,/g,''))||0;};
+    lines.push({ code:code, name:tr.querySelector('.od-name').value, color:tr.querySelector('.od-color').value,
+      qty:qty, price:parseFloat(tr.querySelector('.od-price').value)||0, supply:num('.od-supply'), vat:num('.od-vat'),
+      wcolor:tr.querySelector('.od-wcolor').value, tcolor:tr.querySelector('.od-tcolor').value,
+      factory:tr.querySelector('.od-factory').value, out:tr.querySelector('.od-out').value });
+  });
+  if(!lines.length){ if(window.ARAM_UI)ARAM_UI.Toast.error('주문 품목을 1줄 이상 입력하세요. (원단코드+수량)'); return; }
+  var ts=lines.reduce(function(s,l){return s+l.supply;},0), tv=lines.reduce(function(s,l){return s+l.vat;},0), tq=lines.reduce(function(s,l){return s+l.qty;},0);
+  if(!window._ordersDB) window._ordersDB=[];
+  var order={ no:_nextOrderNo(), date:g('od-date'), client:client, mgr:g('od-mgr')||'-', taxtype:g('od-taxtype'), currency:g('od-currency'), ref:g('od-ref'),
+    lines:lines, qty:tq+' '+(lines[0].code?'':''), supply:ts, vat:tv, total:ts+tv,
+    product:lines[0].name+(lines.length>1?(' 외 '+(lines.length-1)+'건'):''), price:'', due:g('od-date'), progress:0, status:'접수' };
+  order.qty=tq.toLocaleString();
+  window._ordersDB.unshift(order);
+  if(window._saveOrders) window._saveOrders();
+  if(window.ARAM_UI) ARAM_UI.Toast.success('주문 '+order.no+' 저장 완료 ('+lines.length+'줄 · ₩'+order.total.toLocaleString()+')');
+  var bd=document.getElementById('od-bd'); if(bd) bd.remove();
+  if(window.goPage) window.goPage('sales-orders');
+};
+window._openOrderEntry = function(){
+  var old=document.getElementById('od-bd'); if(old) old.remove();
+  var today=new Date().toISOString().slice(0,10);
+  var ea=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var clientOpts='<option value="">— 거래처 선택 —</option>'+(window._clientsDB||[]).map(function(c){return '<option>'+ea(c.name)+'</option>';}).join('');
+  var rows=window._orderRowHtml()+window._orderRowHtml()+window._orderRowHtml();
+  var th='padding:6px 4px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1.5px solid var(--bdr);white-space:nowrap';
+  var lbl='min-width:62px;font-size:12px;color:var(--muted);flex-shrink:0';
+  var fld='padding:5px 8px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none';
+  var bd=document.createElement('div'); bd.id='od-bd';
+  bd.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:14px';
+  bd.innerHTML=
+    '<div style="background:var(--surface,#fff);border-radius:12px;width:1180px;max-width:98vw;max-height:94vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:hidden">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1e2b4a;color:#fff">'
+      +'<span style="font-size:15px;font-weight:800">📝 주문서입력</span>'
+      +'<button onclick="var b=document.getElementById(\'od-bd\');if(b)b.remove();" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer">✕</button>'
+    +'</div>'
+    +'<div style="padding:14px 18px;overflow:auto;flex:1">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;margin-bottom:14px">'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">일자</label><input id="od-date" type="date" value="'+today+'" style="'+fld+';flex:1"></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">거래처 *</label><select id="od-client" style="'+fld+';flex:1">'+clientOpts+'</select></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">담당자</label><input id="od-mgr" style="'+fld+';flex:1"></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">거래유형</label><select id="od-taxtype" onchange="document.querySelectorAll(\'#od-tbody tr\').forEach(function(t){_orderRowCalc(t)})" style="'+fld+';flex:1"><option>부가세 적용</option><option>면세</option></select></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">통화</label><select id="od-currency" style="'+fld+';flex:1"><option>내자</option><option>USD</option><option>EUR</option><option>JPY</option></select></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">참조</label><input id="od-ref" style="'+fld+';flex:1"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button type="button" onclick="_orderAddRow()" style="padding:5px 14px;background:#4361ee;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">+ 행 추가</button></div>'
+      +'<div style="overflow-x:auto;border:1.5px solid var(--bdr);border-radius:8px">'
+      +'<table style="width:100%;border-collapse:collapse;min-width:1050px">'
+        +'<thead><tr>'
+          +'<th style="'+th+'">원단코드</th><th style="'+th+'">원단명</th><th style="'+th+'">원단색</th><th style="'+th+'">수량</th><th style="'+th+'">기준단가</th><th style="'+th+'">공급가액</th><th style="'+th+'">부가세</th><th style="'+th+'">작업칼라</th><th style="'+th+'">실칼라</th><th style="'+th+'">작업공장</th><th style="'+th+'">출고처</th><th style="'+th+'"></th>'
+        +'</tr></thead>'
+        +'<tbody id="od-tbody">'+rows+'</tbody>'
+        +'<tfoot><tr style="background:var(--bg);font-weight:700">'
+          +'<td colspan="3" style="padding:7px 8px;text-align:right;font-size:12px">합계</td>'
+          +'<td style="padding:7px 8px;text-align:right;font-size:12px" id="od-tot-qty">0</td><td></td>'
+          +'<td style="padding:7px 8px;text-align:right;font-size:12px;color:#1d6f42" id="od-tot-supply">0</td>'
+          +'<td style="padding:7px 8px;text-align:right;font-size:12px;color:#1e40af" id="od-tot-vat">0</td>'
+          +'<td colspan="4" style="padding:7px 8px;text-align:right;font-size:12px">총액 ₩<span id="od-tot-amount">0</span></td><td></td>'
+        +'</tr></tfoot>'
+      +'</table></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;padding:10px 18px;border-top:1.5px solid var(--bdr);background:var(--surface,#fff)">'
+      +'<button onclick="_orderSave()" style="padding:8px 22px;background:#4361ee;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">저장 (F8)</button>'
+      +'<button onclick="var b=document.getElementById(\'od-bd\');if(b)b.remove();" style="padding:8px 16px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;font-size:13px;cursor:pointer">닫기</button>'
+      +'<span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center">원단코드 입력 → 원단명·단가 자동 (아람원단=출고단가, 거래처원단=0)</span>'
+    +'</div></div>';
+  document.body.appendChild(bd);
 };
 
 /* 만료상태: 유효(초록)/임박 D-n(주황)/만료(빨강)/없음 */
@@ -8917,8 +9166,8 @@ window._openClientRegModal = function() {
         /* H (신규 시 비활성) */
         +'<button style="padding:7px 11px;font-size:12.5px;font-weight:700;background:var(--bg);color:var(--muted);border:1.5px solid var(--bdr);border-radius:6px;cursor:not-allowed;opacity:.45" disabled>H</button>'
 
-        /* 수주내역 보기 (우측) */
-        +'<button id="_crm_order" style="margin-left:auto;padding:7px 15px;font-size:12.5px;font-weight:700;background:#1e2b4a;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">수주 내역 보기</button>'
+        /* 주문내역 보기 (우측) */
+        +'<button id="_crm_order" style="margin-left:auto;padding:7px 15px;font-size:12.5px;font-weight:700;background:#1e2b4a;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">주문 내역 보기</button>'
 
       +'</div>'
     +'</div>';
@@ -9166,7 +9415,7 @@ window._openClientRegModal = function() {
     UI.Toast.info('양식을 초기화했습니다.');
   };
 
-  /* 수주내역 보기 */
+  /* 주문내역 보기 */
   document.getElementById('_crm_order').onclick = function(){
     closeDlg();
     if(window.goPage) window.goPage('sales-orders');
@@ -9469,9 +9718,9 @@ window._openNewEmbWO = function() {
     ARAM_UI.Modal.open({
       title: '+ 신규 자수 작업지시',
       body: '<div style="padding:20px">'
-        + '<p style="color:#64748b;margin-bottom:16px">신규 작업지시를 생성하면 연결된 수주번호 기준으로<br>자수 사양과 실 배합이 자동 설정됩니다.</p>'
+        + '<p style="color:#64748b;margin-bottom:16px">신규 작업지시를 생성하면 연결된 주문번호 기준으로<br>자수 사양과 실 배합이 자동 설정됩니다.</p>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-        + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">연결 수주번호</label><input class="form-input" placeholder="SO-2026-XXXX" style="width:100%"></div>'
+        + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">연결 주문번호</label><input class="form-input" placeholder="SO-2026-XXXX" style="width:100%"></div>'
         + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">납기일</label><input type="date" class="form-input" style="width:100%"></div>'
         + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">담당자</label><select class="form-select" style="width:100%"><option>김자수</option><option>이자수</option><option>박자수</option></select></div>'
         + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">자수기</label><select class="form-select" style="width:100%"><option>TMEZ-01</option><option>TMEZ-02</option><option>TMEZ-03</option></select></div>'
@@ -9614,6 +9863,7 @@ window._openItemDetail = function(code) {
         +'<option value=""'+(!it.itemType?' selected':'')+'>선택</option>'
         +['원단','원재료','부자재','가공','완제품','제품'].map(function(x){return '<option'+(x===it.itemType?' selected':'')+'>'+x+'</option>';}).join('')
       +'</select></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_idf_owner" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">소유구분</label><select id="_idf_owner" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"><option'+(it.owner!=='거래처원단'?' selected':'')+'>아람원단</option><option'+(it.owner==='거래처원단'?' selected':'')+'>거래처원단</option></select></div>'
     + '<div id="_idf_fabricInfo" style="display:'+(it.itemType==='원단'?'block':'none')+'">'
       + secHead('원단 정보 (롯트·컬러·위치)')
       + inRow('롯트/롤번호','lot',it.lot,'text',false)
@@ -9779,6 +10029,7 @@ window._openItemDetail = function(code) {
       link:     gv('link').trim(),
       imgUrl:   gv('imgUrl').trim(),
       itemType: gv('itemType'),
+      owner:    gv('owner'),
       lot:      gv('lot').trim(),
       colorId:  gv('colorId').trim(),
       location: gv('location').trim(),
@@ -9904,6 +10155,7 @@ window._openItemRegModal = function() {
       +'<select id="_irm_itemType" onchange="(function(v){var b=document.getElementById(\'_irm_fabricInfo\');if(b)b.style.display=(v===\'원단\'?\'\':\'none\');})(this.value)" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none">'
         +'<option value="">선택</option><option>원단</option><option>원재료</option><option>부자재</option><option>가공</option><option>완제품</option><option>제품</option>'
       +'</select></div>'
+    + '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)"><label for="_irm_owner" style="min-width:110px;font-size:12px;color:var(--muted);flex-shrink:0">소유구분</label><select id="_irm_owner" style="flex:1;padding:5px 10px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none"><option>아람원단</option><option>거래처원단</option></select></div>'
     + '<div id="_irm_fabricInfo" style="display:none">'
       + secHead('원단 정보 (롯트·컬러·위치)')
       + inRow('롯트/롤번호','lot','예: #3, 10032','text',false)
@@ -10036,6 +10288,7 @@ window._openItemRegModal = function() {
       var el=document.getElementById('_irm_'+id); if(el) el.value='';
     });
     var itp=document.getElementById('_irm_itemType'); if(itp) itp.selectedIndex=0;
+    var ow=document.getElementById('_irm_owner'); if(ow) ow.selectedIndex=0;
     var fab=document.getElementById('_irm_fabricInfo'); if(fab) fab.style.display='none';
     var cc2=document.getElementById('_irm_code'); if(cc2) cc2.value='';
     var cb2=document.getElementById('_irm_code_badge'); if(cb2) cb2.textContent='';
@@ -10076,6 +10329,7 @@ window._openItemRegModal = function() {
       link:     gv('link').trim(),
       imgUrl:   gv('imgUrl').trim(),
       itemType: gv('itemType'),         /* 품목유형: 원단/원재료/부자재/가공/완제품/제품 */
+      owner:    gv('owner'),            /* 소유구분: 아람원단/거래처원단 */
       lot:      gv('lot').trim(),       /* 롯트/롤번호 */
       colorId:  gv('colorId').trim(),   /* 컬러 */
       location: gv('location').trim(),  /* 보관위치 */

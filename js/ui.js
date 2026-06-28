@@ -137,7 +137,7 @@ window.ARAM_UI = (function () {
   ══════════════════════════════════════════════════════ */
   const NOTIFICATIONS = [
     { id:1, type:'orange', icon:'⚠️', text:'<strong>원단 안전재고 미달</strong> — FAB-2403 TC 20수 그레이 (5,430/6,000 YD)', time:'5분 전',  unread:true,  page:'inventory' },
-    { id:2, type:'blue',   icon:'📋', text:'<strong>신규 수주 접수</strong> — ORD-2026-0871 (주)대한섬유 · ₩38,000,000', time:'18분 전', unread:true,  page:'sales-orders' },
+    { id:2, type:'blue',   icon:'📋', text:'<strong>신규 주문 접수</strong> — ORD-2026-0871 (주)대한섬유 · ₩38,000,000', time:'18분 전', unread:true,  page:'sales-orders' },
     { id:3, type:'green',  icon:'✅', text:'<strong>생산완료</strong> — WO-DTP-2026-0234 작업지시 완료 처리되었습니다.', time:'34분 전', unread:true,  page:'production-dtp' },
     { id:4, type:'purple', icon:'💰', text:'<strong>급여 승인 요청</strong> — 2026년 5월 급여대장 승인이 필요합니다.', time:'1시간 전', unread:false, page:'finance' },
     { id:5, type:'blue',   icon:'📦', text:'<strong>발주 입고</strong> — PO-2026-0229 코리아부자재 입고 확인 요청', time:'2시간 전', unread:false, page:'purchase' },
@@ -270,7 +270,7 @@ window.ARAM_UI = (function () {
   const SEARCH_ITEMS = [
     /* 페이지 */
     { type:'page', icon:'📊', bg:'#eff2ff', name:'대시보드', sub:'메인 홈', page:'dashboard' },
-    { type:'page', icon:'📋', bg:'#ecfdf5', name:'수주관리', sub:'영업/주문관리', page:'sales-orders' },
+    { type:'page', icon:'📋', bg:'#ecfdf5', name:'주문관리', sub:'영업/주문관리', page:'sales-orders' },
     { type:'page', icon:'🏭', bg:'#fff7ed', name:'DTP 생산', sub:'생산관리', page:'production-dtp' },
     { type:'page', icon:'🧵', bg:'#f5f3ff', name:'자수 생산', sub:'생산관리', page:'production-emb' },
     { type:'page', icon:'📦', bg:'#eff6ff', name:'재고현황', sub:'원단/재고관리', page:'inventory' },
@@ -384,7 +384,7 @@ window.ARAM_UI = (function () {
       </div>`;
     }
 
-    const groups = { page:'메뉴', order:'수주/주문', client:'거래처', '':'기타' };
+    const groups = { page:'메뉴', order:'주문/주문', client:'거래처', '':'기타' };
     const byType = {};
     matched.forEach(i => { (byType[i.type] = byType[i.type] || []).push(i); });
 
@@ -502,12 +502,12 @@ window.ARAM_UI = (function () {
   }
 
   /* ══════════════════════════════════════════════════════
-     6. 수주 신규 등록 모달
+     6. 주문 신규 등록 모달
   ══════════════════════════════════════════════════════ */
   function openNewOrderModal() {
     const today = new Date().toISOString().slice(0, 10);
     openModal({
-      title: '신규 수주 등록',
+      title: '신규 주문 등록',
       size: 'lg',
       body: `
         <div class="form-section">
@@ -579,7 +579,7 @@ window.ARAM_UI = (function () {
         { label: '임시저장', type: 'secondary', onClick: (close) => {
           Toast.info('임시 저장되었습니다.');
         }},
-        { label: '수주 등록', type: 'primary', onClick: (close) => {
+        { label: '주문 등록', type: 'primary', onClick: (close) => {
           const client  = document.getElementById('ord-client')?.value.trim();
           const product = document.getElementById('ord-product')?.value.trim();
           const qty     = document.getElementById('ord-qty')?.value.trim();
@@ -588,7 +588,7 @@ window.ARAM_UI = (function () {
             return;
           }
           close();
-          Toast.success(`수주가 등록되었습니다. (${client} — ${product})`);
+          Toast.success(`주문가 등록되었습니다. (${client} — ${product})`);
         }},
       ],
     });
