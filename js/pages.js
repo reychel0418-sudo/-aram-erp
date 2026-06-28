@@ -8626,35 +8626,48 @@ window._orderRowHtml = function(){
   var inp='padding:4px 6px;border:1px solid var(--bdr);border-radius:4px;background:var(--bg);color:var(--txt);font-size:12px;width:100%;box-sizing:border-box;outline:none';
   var ro=inp+';background:#f1f5f9';
   return '<tr>'
-    +'<td style="padding:2px"><input class="od-code" onchange="_orderRowFill(this)" placeholder="원단코드" style="'+inp+'"></td>'
-    +'<td style="padding:2px"><input class="od-name" readonly placeholder="(자동)" style="'+ro+'"></td>'
-    +'<td style="padding:2px"><input class="od-color" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-pcode" onchange="_orderFillProduct(this)" placeholder="제품/디자인코드" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-pname" readonly placeholder="(자동)" style="'+ro+'"></td>'
+    +'<td style="padding:2px"><input class="od-pprice" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" title="디자인/가공 단가" style="'+inp+';text-align:right"></td>'
+    +'<td style="padding:2px"><input class="od-fcode" onchange="_orderFillFabric(this)" placeholder="바닥지(원단)코드" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-fname" readonly placeholder="(자동)" style="'+ro+'"></td>'
+    +'<td style="padding:2px"><input class="od-fprice" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" title="원단(바닥지) 단가" style="'+inp+';text-align:right"></td>'
     +'<td style="padding:2px"><input class="od-qty" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" style="'+inp+';text-align:right"></td>'
-    +'<td style="padding:2px"><input class="od-price" type="number" min="0" onchange="_orderRowCalc(this.closest(\'tr\'))" style="'+inp+';text-align:right"></td>'
     +'<td style="padding:2px"><input class="od-supply" readonly style="'+ro+';text-align:right"></td>'
     +'<td style="padding:2px"><input class="od-vat" readonly style="'+ro+';text-align:right"></td>'
-    +'<td style="padding:2px"><input class="od-wcolor" style="'+inp+'"></td>'
-    +'<td style="padding:2px"><input class="od-tcolor" style="'+inp+'"></td>'
+    +'<td style="padding:2px"><input class="od-color" style="'+inp+'"></td>'
     +'<td style="padding:2px"><input class="od-factory" style="'+inp+'"></td>'
     +'<td style="padding:2px"><input class="od-out" style="'+inp+'"></td>'
     +'<td style="padding:2px;text-align:center"><button type="button" onclick="this.closest(\'tr\').remove();_orderRecalcTotals()" style="background:#ef4444;color:#fff;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:11px">×</button></td>'
   +'</tr>';
 };
-window._orderRowFill = function(inp){
+/* 제품/디자인 코드 → 품목명·디자인(가공)단가 자동 */
+window._orderFillProduct = function(inp){
   var tr=inp.closest('tr'); var code=inp.value.trim();
   var it=(window._itemsDB||[]).find(function(x){return x.code===code;});
-  if(!it){ if(code&&window.ARAM_UI) ARAM_UI.Toast.info('품목코드 ['+code+']를 찾을 수 없습니다.'); return; }
-  tr.querySelector('.od-name').value=it.name||'';
-  tr.querySelector('.od-color').value=it.colorId||'';
-  var price=(it.owner==='거래처원단')?0:(parseInt(String(it.outPrice||it.price||'').replace(/,/g,''))||0);
-  tr.querySelector('.od-price').value=price;
-  if(it.owner==='거래처원단'&&window.ARAM_UI) ARAM_UI.Toast.info(it.name+' = 거래처원단 → 단가 0 (가공비 별도)');
+  if(!it){ if(code&&window.ARAM_UI) ARAM_UI.Toast.info('제품/디자인코드 ['+code+']를 찾을 수 없습니다.'); return; }
+  tr.querySelector('.od-pname').value=it.name||'';
+  tr.querySelector('.od-pprice').value=parseInt(String(it.outPrice||it.price||'').replace(/,/g,''))||0;
   _orderRowCalc(tr);
 };
+/* 바닥지(원단) 코드 → 원단명·원단단가 자동 (아람원단만 단가, 거래처원단=0) */
+window._orderFillFabric = function(inp){
+  var tr=inp.closest('tr'); var code=inp.value.trim();
+  var it=(window._itemsDB||[]).find(function(x){return x.code===code;});
+  if(!it){ if(code&&window.ARAM_UI) ARAM_UI.Toast.info('원단코드 ['+code+']를 찾을 수 없습니다.'); return; }
+  tr.querySelector('.od-fname').value=it.name||'';
+  tr.querySelector('.od-color').value=it.colorId||'';
+  var price=(it.owner==='거래처원단')?0:(parseInt(String(it.outPrice||it.price||'').replace(/,/g,''))||0);
+  tr.querySelector('.od-fprice').value=price;
+  if(it.owner==='거래처원단'&&window.ARAM_UI) ARAM_UI.Toast.info(it.name+' = 거래처원단 → 원단단가 0 (거래처 제공)');
+  _orderRowCalc(tr);
+};
+/* 공급가액 = 수량 × (디자인단가 + 원단단가) */
 window._orderRowCalc = function(tr){
   var qty=parseFloat(tr.querySelector('.od-qty').value)||0;
-  var price=parseFloat(tr.querySelector('.od-price').value)||0;
-  var supply=Math.round(qty*price);
+  var pp=parseFloat(tr.querySelector('.od-pprice').value)||0;
+  var fp=parseFloat(tr.querySelector('.od-fprice').value)||0;
+  var supply=Math.round(qty*(pp+fp));
   var taxEl=document.getElementById('od-taxtype');
   var vat=(taxEl&&taxEl.value==='면세')?0:Math.round(supply*0.1);
   tr.querySelector('.od-supply').value=supply.toLocaleString();
@@ -8677,21 +8690,22 @@ window._orderSave = function(){
   var client=g('od-client'); if(!client){ if(window.ARAM_UI)ARAM_UI.Toast.error('거래처를 선택하세요.'); return; }
   var lines=[];
   document.querySelectorAll('#od-tbody tr').forEach(function(tr){
-    var code=tr.querySelector('.od-code').value.trim();
+    var pcode=tr.querySelector('.od-pcode').value.trim();
+    var fcode=tr.querySelector('.od-fcode').value.trim();
     var qty=parseFloat(tr.querySelector('.od-qty').value)||0;
-    if(!code||!qty) return;
+    if((!pcode&&!fcode)||!qty) return;
     var num=function(c){return parseInt((tr.querySelector(c).value||'0').replace(/,/g,''))||0;};
-    lines.push({ code:code, name:tr.querySelector('.od-name').value, color:tr.querySelector('.od-color').value,
-      qty:qty, price:parseFloat(tr.querySelector('.od-price').value)||0, supply:num('.od-supply'), vat:num('.od-vat'),
-      wcolor:tr.querySelector('.od-wcolor').value, tcolor:tr.querySelector('.od-tcolor').value,
+    lines.push({ pcode:pcode, pname:tr.querySelector('.od-pname').value, pprice:parseFloat(tr.querySelector('.od-pprice').value)||0,
+      fcode:fcode, fname:tr.querySelector('.od-fname').value, fprice:parseFloat(tr.querySelector('.od-fprice').value)||0,
+      color:tr.querySelector('.od-color').value, qty:qty, supply:num('.od-supply'), vat:num('.od-vat'),
       factory:tr.querySelector('.od-factory').value, out:tr.querySelector('.od-out').value });
   });
-  if(!lines.length){ if(window.ARAM_UI)ARAM_UI.Toast.error('주문 품목을 1줄 이상 입력하세요. (원단코드+수량)'); return; }
+  if(!lines.length){ if(window.ARAM_UI)ARAM_UI.Toast.error('주문 품목을 1줄 이상 입력하세요. (제품/원단코드+수량)'); return; }
   var ts=lines.reduce(function(s,l){return s+l.supply;},0), tv=lines.reduce(function(s,l){return s+l.vat;},0), tq=lines.reduce(function(s,l){return s+l.qty;},0);
   if(!window._ordersDB) window._ordersDB=[];
   var order={ no:_nextOrderNo(), date:g('od-date'), client:client, mgr:g('od-mgr')||'-', taxtype:g('od-taxtype'), currency:g('od-currency'), ref:g('od-ref'),
     lines:lines, qty:tq+' '+(lines[0].code?'':''), supply:ts, vat:tv, total:ts+tv,
-    product:lines[0].name+(lines.length>1?(' 외 '+(lines.length-1)+'건'):''), price:'', due:g('od-date'), progress:0, status:'접수' };
+    product:(lines[0].pname||lines[0].fname||'-')+(lines.length>1?(' 외 '+(lines.length-1)+'건'):''), price:'', due:g('od-date'), progress:0, status:'접수' };
   order.qty=tq.toLocaleString();
   window._ordersDB.unshift(order);
   if(window._saveOrders) window._saveOrders();
@@ -8727,24 +8741,25 @@ window._openOrderEntry = function(){
       +'</div>'
       +'<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button type="button" onclick="_orderAddRow()" style="padding:5px 14px;background:#4361ee;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">+ 행 추가</button></div>'
       +'<div style="overflow-x:auto;border:1.5px solid var(--bdr);border-radius:8px">'
-      +'<table style="width:100%;border-collapse:collapse;min-width:1050px">'
+      +'<table style="width:100%;border-collapse:collapse;min-width:1240px">'
         +'<thead><tr>'
-          +'<th style="'+th+'">원단코드</th><th style="'+th+'">원단명</th><th style="'+th+'">원단색</th><th style="'+th+'">수량</th><th style="'+th+'">기준단가</th><th style="'+th+'">공급가액</th><th style="'+th+'">부가세</th><th style="'+th+'">작업칼라</th><th style="'+th+'">실칼라</th><th style="'+th+'">작업공장</th><th style="'+th+'">출고처</th><th style="'+th+'"></th>'
+          +'<th style="'+th+'">제품/디자인코드</th><th style="'+th+'">품목명</th><th style="'+th+';color:#7c3aed">디자인단가</th><th style="'+th+'">원단코드</th><th style="'+th+'">원단명</th><th style="'+th+';color:#0ea5e9">원단단가</th><th style="'+th+'">수량</th><th style="'+th+'">공급가액</th><th style="'+th+'">부가세</th><th style="'+th+'">원단색</th><th style="'+th+'">작업공장</th><th style="'+th+'">출고처</th><th style="'+th+'"></th>'
         +'</tr></thead>'
         +'<tbody id="od-tbody">'+rows+'</tbody>'
         +'<tfoot><tr style="background:var(--bg);font-weight:700">'
-          +'<td colspan="3" style="padding:7px 8px;text-align:right;font-size:12px">합계</td>'
-          +'<td style="padding:7px 8px;text-align:right;font-size:12px" id="od-tot-qty">0</td><td></td>'
+          +'<td colspan="6" style="padding:7px 8px;text-align:right;font-size:12px">합계</td>'
+          +'<td style="padding:7px 8px;text-align:right;font-size:12px" id="od-tot-qty">0</td>'
           +'<td style="padding:7px 8px;text-align:right;font-size:12px;color:#1d6f42" id="od-tot-supply">0</td>'
           +'<td style="padding:7px 8px;text-align:right;font-size:12px;color:#1e40af" id="od-tot-vat">0</td>'
-          +'<td colspan="4" style="padding:7px 8px;text-align:right;font-size:12px">총액 ₩<span id="od-tot-amount">0</span></td><td></td>'
+          +'<td colspan="3" style="padding:7px 8px;text-align:right;font-size:12px">총액 ₩<span id="od-tot-amount">0</span></td>'
+          +'<td></td>'
         +'</tr></tfoot>'
       +'</table></div>'
     +'</div>'
     +'<div style="display:flex;gap:8px;padding:10px 18px;border-top:1.5px solid var(--bdr);background:var(--surface,#fff)">'
       +'<button onclick="_orderSave()" style="padding:8px 22px;background:#4361ee;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">저장 (F8)</button>'
       +'<button onclick="var b=document.getElementById(\'od-bd\');if(b)b.remove();" style="padding:8px 16px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;font-size:13px;cursor:pointer">닫기</button>'
-      +'<span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center">원단코드 입력 → 원단명·단가 자동 (아람원단=출고단가, 거래처원단=0)</span>'
+      +'<span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center">제품코드→디자인단가, 원단코드→원단단가(아람원단만 측정) · 공급가액 = 수량×(디자인+원단)</span>'
     +'</div></div>';
   document.body.appendChild(bd);
 };
