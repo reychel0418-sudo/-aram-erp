@@ -8376,7 +8376,7 @@ window._aramFillGongjeongPrice = function(prefix){
 /* ═══════════════════════════════════════════════════
    📊 엑셀 대량 품목등록 (웹업로드)
 ═══════════════════════════════════════════════════ */
-window._aramItemXlsHeaders = ['품목명','사업구분','품목유형','단위','거래처','입고단가','출고단가','재고','규격','롯트','컬러','보관위치','입고날짜','링크','메모'];
+window._aramItemXlsHeaders = ['품목코드','품목명','사업구분','품목유형','단위','거래처','입고단가','출고단가','재고','규격','롯트','컬러','보관위치','입고날짜','링크','메모'];
 
 /* SheetJS(xlsx) 동적 로드 */
 function _aramLoadSheetJS(cb){
@@ -8391,7 +8391,7 @@ function _aramLoadSheetJS(cb){
 /* 양식(템플릿) CSV 다운로드 */
 window._aramDownloadItemTemplate = function(){
   var headers = window._aramItemXlsHeaders;
-  var sample  = ['플라워 원단','DTP','원단','야드(Y)','지성텍스(주)','3200','3500','100','60수 혼방','#3','5','A동 3번랙','2026-06-28','https://example.com','샘플메모'];
+  var sample  = ['FAB-001','플라워 원단','DTP','원단','야드(Y)','지성텍스(주)','3200','3500','100','60수 혼방','#3','5','A동 3번랙','2026-06-28','https://example.com','샘플메모'];
   var csv = '﻿' + headers.join(',') + '\n' + sample.join(',') + '\n';
   var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   var a = document.createElement('a');
@@ -8408,13 +8408,16 @@ window._aramProcessItemRows = function(rows){
   var num = function(v){ return String(v==null?'':v).replace(/,/g,'').trim(); };
   var str = function(v){ return String(v==null?'':v).trim(); };
   var today = new Date().toISOString().slice(0,10);
-  var added=0, skipped=0;
+  var added=0, skipped=0, dup=0;
   rows.forEach(function(r){
     var name = str(r['품목명']);
     if(!name){ skipped++; return; }
+    var code = str(r['품목코드']);
+    if(!code){ code = window._nextItemCode(); }                                        /* 코드 비었으면 자동생성 */
+    else if((window._itemsDB||[]).some(function(x){ return x.code===code; })){ dup++; return; }  /* 중복코드 건너뜀 */
     var inP=num(r['입고단가']), outP=num(r['출고단가']);
     window._itemsDB.push({
-      code: window._nextItemCode(),
+      code: code,
       name: name,
       cat: str(r['사업구분']),
       itemType: str(r['품목유형']),
@@ -8437,7 +8440,7 @@ window._aramProcessItemRows = function(rows){
   });
   if(window._saveItems) window._saveItems();
   if(window._itmRerender) window._itmRerender();
-  if(window.ARAM_UI) ARAM_UI.Toast.success(added+'개 품목 대량등록 완료'+(skipped?(' ('+skipped+'개 건너뜀: 품목명 없음)'):''));
+  if(window.ARAM_UI) ARAM_UI.Toast.success(added+'개 품목 대량등록 완료'+((skipped||dup)?(' (건너뜀 — 품목명없음 '+skipped+'개, 코드중복 '+dup+'개)'):''));
 };
 
 /* 선택한 파일 분석 → 등록 */
