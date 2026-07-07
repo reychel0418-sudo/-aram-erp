@@ -73,6 +73,7 @@
     menu               : '전체 메뉴',
     'sales-orders'     : '주문관리',
     'sales-order-detail': '주문 상세',
+    'sales-shipping'   : '출하관리',
     'design-dtp'       : 'DTP 디자인',
     'design-emb'       : '자수 디자인',
     'production-dtp'   : 'DTP 생산',
@@ -98,7 +99,7 @@
     if (!target) return;
 
     /* 3) 렌더링 — menu·inventory 는 매번 재렌더 (재고는 품목등록 변경을 실시간 반영) */
-    const alwaysRender = (name === 'menu' || name === 'inventory' || name === 'sales-orders');
+    const alwaysRender = (name === 'menu' || name === 'inventory' || name === 'sales-orders' || name === 'sales-shipping');
     if (!target.dataset.rendered || alwaysRender) {
       const renderer = window.ARAM_PAGES && window.ARAM_PAGES[_normKey(name)];
       if (renderer) {

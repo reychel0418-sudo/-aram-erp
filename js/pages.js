@@ -266,7 +266,7 @@ window.ARAM_PAGES = {
         items:[{l:'메인',p:'dashboard'},{l:'내업무',p:'dashboard'},{l:'즐겨찾기',p:'menu'},{l:'최근방문',p:'menu'}] },
       { num:2,  title:'영업/주문관리',     page:'sales-orders',
         icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>',
-        items:[{l:'거래처관리',p:'sales-clients'},{l:'품목등록',p:'sales-items'},{l:'견적관리',p:'sales-orders'},{l:'주문관리',p:'sales-orders'},{l:'출하관리',p:'sales-orders'},{l:'매출관리',p:'finance'},{l:'CRM',p:'sales-orders'}] },
+        items:[{l:'거래처관리',p:'sales-clients'},{l:'품목등록',p:'sales-items'},{l:'견적관리',p:'sales-orders'},{l:'주문관리',p:'sales-orders'},{l:'출하관리',p:'sales-shipping'},{l:'매출관리',p:'finance'},{l:'CRM',p:'sales-orders'}] },
       { num:3,  title:'디자인팀',          page:'design-dtp',
         icon:'<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/>',
         items:[{l:'DTP 디자인',p:'design-dtp'},{l:'자수 디자인',p:'design-emb'},{l:'거래처별 모음',p:'design-dtp'},{l:'대기건 대시보드',p:'design-dtp'},{l:'디자인 자료',p:'design-dtp'}] },
@@ -1825,6 +1825,69 @@ window.ARAM_PAGES = {
   },
 
   /* ══════════════════════════════════
+     출하관리 (출고처리)
+  ══════════════════════════════════ */
+  'sales-shipping'() {
+    const ships = window._shipmentsDB || [];
+    const targets = (window._ordersDB||[]).filter(o=>o.lines&&(o.status==='접수'||o.status==='진행중'));
+    return `
+    <div class="page-header">
+      <div class="flex-between">
+        <div>
+          <div class="page-title">출하관리</div>
+          <div class="page-desc">주문 기반 출고처리 — 출고 시 재고 차감 및 입출고이력 자동 기록</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('출하관리')">CSV ↓</button>
+          <button class="btn btn-secondary btn-sm" onclick="printPage()">🖨 인쇄</button>
+          <button class="btn btn-primary" onclick="window._openShipEntry && window._openShipEntry()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            신규 출고
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <span class="filter-label">기간</span>
+      <div class="date-range">
+        <input id="sh-f-from" class="form-input" type="date" onchange="_shApplyFilter()">
+        <span style="color:#9ba8c0">~</span>
+        <input id="sh-f-to" class="form-input" type="date" onchange="_shApplyFilter()">
+      </div>
+      <span class="filter-label">거래처</span>
+      <input id="sh-f-client" class="form-input" placeholder="거래처명 검색" style="width:160px" oninput="_shApplyFilter()">
+      <span class="filter-label">주문번호</span>
+      <input id="sh-f-order" class="form-input" placeholder="ORD-…" style="width:150px" oninput="_shApplyFilter()">
+      <button class="btn btn-secondary btn-sm" onclick="_shResetFilter()">초기화</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid mb-16" id="sh-stats">
+      ${window._shStatsHtml ? window._shStatsHtml(ships, targets) : ''}
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>출고번호</th><th>주문번호</th><th>거래처</th><th>품목</th>
+            <th class="td-right">출고수량</th><th>출고일</th><th>확인자</th><th>비고</th><th>액션</th>
+          </tr></thead>
+          <tbody id="sh-tbody">
+            ${window._shRowsHtml ? window._shRowsHtml(ships) : ''}
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span class="page-info" id="sh-count">전체 ${ships.length}건</span>
+      </div>
+    </div>`;
+  },
+
+  /* ══════════════════════════════════
      DTP 작업지시 상세
   ══════════════════════════════════ */
   'production-dtp'() {
@@ -3299,6 +3362,7 @@ window.ARAM_PAGES = {
             </tr></thead>
             <tbody>
               ${[
+                ...(window._movementsDB||[]),
                 {dt:'2026-05-20 10:22',no:'IN-2026-05-1842',type:'입고',code:'FAB-1102',name:'코튼 20수 화이트',wh:'1공장',qty:'5,400',price:'12,800',total:'69,120,000',user:'박준영',note:''},
                 {dt:'2026-05-20 09:45',no:'OUT-2026-05-3211',type:'출고',code:'FAB-1103',name:'코튼 30수 블랙',wh:'2공장',qty:'2,200',price:'14,500',total:'31,900,000',user:'이정훈',note:'WO-DTP-0234'},
                 {dt:'2026-05-19 17:30',no:'IN-2026-05-1841',type:'입고',code:'FAB-2201',name:'폴리 75D 네이비',wh:'물류센터',qty:'8,000',price:'9,200',total:'73,600,000',user:'오재형',note:''},
@@ -8792,6 +8856,7 @@ window._soRowsHtml = function(list){
         +'<span style="font-size:13px">'+esc(o.mgr||'-')+'</span></div></td>'
       +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:4px">'
         +'<button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px;white-space:nowrap" onclick="window._openProductionLinkModal&&window._openProductionLinkModal(\''+esc(o.no)+'\')">🏭 생산</button>'
+        +(saved&&(o.status==='접수'||o.status==='진행중')?'<button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px;white-space:nowrap" title="출고처리" onclick="_openShipEntry(\''+esc(o.no)+'\')">🚚 출고</button>':'')
         +(saved?'<button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px" title="수정" onclick="_openOrderEntry(\''+esc(o.no)+'\')">✏</button>'
                +'<button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px;color:#ef4444;border-color:#fecaca" title="삭제" onclick="_orderDelete(\''+esc(o.no)+'\')">🗑</button>':'')
       +'</div></td>'
@@ -8910,6 +8975,8 @@ window._openOrderDetail = function(no){
   if(o.status==='접수'||o.status==='진행중')
                           footer.push({label:'주문 취소',    type:'danger',    onClick:function(c){c();window._soSetStatus(no,'취소');}});
   if(saved){
+    if(o.status==='접수'||o.status==='진행중')
+      footer.push({label:'🚚 출고', type:'primary',  onClick:function(c){c();window._openShipEntry(no);}});
     footer.push({label:'✏ 수정', type:'secondary', onClick:function(c){c();window._openOrderEntry(no);}});
     footer.push({label:'🗑 삭제', type:'danger',    onClick:function(c){c();window._orderDelete(no);}});
   }
@@ -8946,6 +9013,303 @@ window._orderDelete = function(no){
         if(window._saveOrders) window._saveOrders();
         ARAM_UI.Toast.success('주문 '+no+'가 삭제되었습니다.');
         if(document.getElementById('so-tbody')) window._soApplyFilter();
+      }}
+    ]
+  });
+};
+
+/* ═══════════════════════════════════════════════════
+   🚚 출하관리 (출고처리) — Shipment + InventoryMovement
+   출고 = 주문 연결 · 재고 차감 · 입출고이력 자동 기록
+═══════════════════════════════════════════════════ */
+(function(){ try{ var s=localStorage.getItem('aram_shipments'); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) window._shipmentsDB=a; } }catch(e){} })();
+window._shipmentsDB = window._shipmentsDB || [];
+window._saveShipments = function(){ try{ localStorage.setItem('aram_shipments', JSON.stringify(window._shipmentsDB||[])); }catch(e){} };
+(function(){ try{ var s=localStorage.getItem('aram_movements'); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) window._movementsDB=a; } }catch(e){} })();
+window._movementsDB = window._movementsDB || [];
+window._saveMovements = function(){ try{ localStorage.setItem('aram_movements', JSON.stringify(window._movementsDB||[])); }catch(e){} };
+window._nextShipNo = function(){
+  var y=new Date().getFullYear(), max=0;
+  (window._shipmentsDB||[]).forEach(function(s){ var m=(s.no||'').match(/(\d+)$/); if(m){var n=parseInt(m[1],10); if(n>max)max=n;} });
+  return 'SH-'+y+'-'+String(max+1).padStart(4,'0');
+};
+
+/* 주문별 라인 인덱스 → 기출고 수량 */
+window._shShippedByOrder = function(orderNo){
+  var map={};
+  (window._shipmentsDB||[]).forEach(function(s){
+    if(s.orderNo!==orderNo) return;
+    (s.lines||[]).forEach(function(l){ map[l.idx]=(map[l.idx]||0)+(l.qty||0); });
+  });
+  return map;
+};
+
+/* 주문 진행률/상태 재계산 (출고 누계 기준) */
+window._shSyncOrderProgress = function(orderNo){
+  var o=(window._ordersDB||[]).find(function(x){return x.no===orderNo;});
+  if(!o||!o.lines) return;
+  var total=o.lines.reduce(function(s,l){return s+(l.qty||0);},0);
+  var shipped=0, map=window._shShippedByOrder(orderNo);
+  Object.keys(map).forEach(function(k){ shipped+=map[k]; });
+  if(total>0){
+    var pct=Math.min(100, Math.round(shipped/total*100));
+    o.progress=pct;
+    if(pct>=100) o.status='완료';
+    else if(shipped>0&&o.status!=='취소') o.status='진행중';
+    else if(shipped===0&&o.status==='완료') o.status='진행중';
+  }
+  if(window._saveOrders) window._saveOrders();
+};
+
+/* 재고 증감 (출고 -, 취소 복원 +) + 입출고이력 기록 */
+window._shMoveStock = function(line, delta, shipNo, orderNo, user){
+  var code=line.fcode||line.pcode||line.code;
+  if(!code) return;
+  var it=(window._itemsDB||[]).find(function(x){return x.code===code;});
+  var name=line.name||line.fname||line.pname||'';
+  var price=0;
+  if(it){
+    var cur=parseInt(String(it.stock||'0').replace(/,/g,''))||0;
+    it.stock=String(cur+delta);
+    price=parseInt(String(it.price||'0').replace(/,/g,''))||0;
+    name=it.name||name;
+    if(window._saveItems) window._saveItems();
+    if(cur+delta<0&&window.ARAM_UI) ARAM_UI.Toast.info(name+' 재고가 부족합니다. (현재 '+(cur+delta)+')');
+  }
+  var d=new Date();
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var qty=Math.abs(delta);
+  window._movementsDB.unshift({
+    dt:d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes()),
+    no:shipNo, type:(delta<0?'출고':'입고'), code:code, name:name, wh:'본사창고',
+    qty:qty.toLocaleString(), price:price.toLocaleString(), total:(qty*price).toLocaleString(),
+    user:user||'-', note:orderNo+(delta>0?' 출고취소 복원':''), ref:shipNo
+  });
+  window._saveMovements();
+};
+
+/* 통계 카드 */
+window._shStatsHtml = function(list, targets){
+  var ym=new Date().toISOString().slice(0,7);
+  var month=list.filter(function(s){return (s.date||'').slice(0,7)===ym;});
+  var mQty=month.reduce(function(s,x){return s+(x.qty||0);},0);
+  if(targets==null) targets=(window._ordersDB||[]).filter(function(o){return o.lines&&(o.status==='접수'||o.status==='진행중');});
+  return [
+    ['총 출고',list.length+'건','#4361ee'],
+    ['이번달 출고',month.length+'건','#3b82f6'],
+    ['이번달 출고수량',mQty.toLocaleString(),'#10b981'],
+    ['출고대상 주문',targets.length+'건','#f59e0b'],
+  ].map(function(a){
+    return '<div class="stat-card"><div class="stat-label">'+a[0]+'</div>'
+      +'<div class="stat-value'+(String(a[1]).length>5?' sm':'')+'" style="color:'+a[2]+'">'+a[1]+'</div></div>';
+  }).join('');
+};
+
+/* 목록 행 */
+window._shRowsHtml = function(list){
+  var esc=window._soEsc;
+  if(!list.length) return '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);font-size:13px">출고 이력이 없습니다. [+ 신규 출고]로 주문을 출고처리하세요.</td></tr>';
+  return list.map(function(s){
+    var items=(s.lines||[]).map(function(l){return l.name;}).filter(Boolean);
+    var itemTxt=items.length?(items[0]+(items.length>1?' 외 '+(items.length-1)+'건':'')):'-';
+    return '<tr style="cursor:pointer" onclick="_openShipDetail(\''+esc(s.no)+'\')">'
+      +'<td class="td-link">'+esc(s.no)+'</td>'
+      +'<td style="font-family:monospace;font-size:12px;color:#4361ee">'+esc(s.orderNo)+'</td>'
+      +'<td style="font-weight:500">'+esc(s.client)+'</td>'
+      +'<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">'+esc(itemTxt)+'</td>'
+      +'<td class="td-right font-600">'+(s.qty||0).toLocaleString()+'</td>'
+      +'<td>'+esc(s.date)+'</td>'
+      +'<td>'+esc(s.confirmedBy||'-')+'</td>'
+      +'<td style="font-size:12px;color:#9ba8c0;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+esc(s.memo||'—')+'</td>'
+      +'<td onclick="event.stopPropagation()">'
+        +'<button class="btn btn-secondary btn-sm" style="height:26px;font-size:11px;padding:0 8px;color:#ef4444;border-color:#fecaca" onclick="_shipCancel(\''+esc(s.no)+'\')">출고취소</button>'
+      +'</td>'
+    +'</tr>';
+  }).join('');
+};
+
+/* 필터 */
+window._shApplyFilter = function(){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var from=g('sh-f-from'), to=g('sh-f-to'), cli=g('sh-f-client').trim().toLowerCase(), ord=g('sh-f-order').trim().toLowerCase();
+  var list=(window._shipmentsDB||[]).filter(function(s){
+    if(from&&(s.date||'')<from) return false;
+    if(to&&(s.date||'')>to) return false;
+    if(cli&&String(s.client||'').toLowerCase().indexOf(cli)<0) return false;
+    if(ord&&String(s.orderNo||'').toLowerCase().indexOf(ord)<0) return false;
+    return true;
+  });
+  var tb=document.getElementById('sh-tbody'); if(tb) tb.innerHTML=window._shRowsHtml(list);
+  var st=document.getElementById('sh-stats'); if(st) st.innerHTML=window._shStatsHtml(list,null);
+  var cnt=document.getElementById('sh-count'); if(cnt) cnt.textContent='전체 '+list.length+'건';
+};
+window._shResetFilter = function(){
+  ['sh-f-from','sh-f-to','sh-f-client','sh-f-order'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  window._shApplyFilter();
+};
+
+/* 출고 상세 모달 */
+window._openShipDetail = function(no){
+  if(!window.ARAM_UI) return;
+  var s=(window._shipmentsDB||[]).find(function(x){return x.no===no;});
+  if(!s){ ARAM_UI.Toast.error('출고 ['+no+']를 찾을 수 없습니다.'); return; }
+  var esc=window._soEsc;
+  var th='padding:7px 8px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1.5px solid var(--bdr);text-align:left';
+  var td='padding:6px 8px;font-size:12.5px;border-bottom:1px solid var(--bdr)';
+  var meta=function(l,v){return '<div><div style="font-size:11px;color:#9ba8c0;margin-bottom:3px">'+l+'</div><div style="font-size:13.5px;font-weight:600">'+(v||'—')+'</div></div>';};
+  var body='<div style="padding:4px 2px">'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px;background:var(--bg);border-radius:8px;padding:14px 16px;margin-bottom:14px">'
+      +meta('출고번호','<span style="font-family:monospace;color:#4361ee">'+esc(s.no)+'</span>')
+      +meta('주문번호','<span style="font-family:monospace">'+esc(s.orderNo)+'</span>')
+      +meta('거래처',esc(s.client))
+      +meta('출고일',esc(s.date))
+      +meta('확인자',esc(s.confirmedBy))
+      +meta('비고',esc(s.memo))
+    +'</div>'
+    +'<div style="border:1.5px solid var(--bdr);border-radius:8px;overflow:hidden">'
+    +'<table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr><th style="'+th+'">코드</th><th style="'+th+'">품목명</th><th style="'+th+';text-align:right">출고수량</th></tr></thead>'
+    +'<tbody>'+(s.lines||[]).map(function(l){
+      return '<tr><td style="'+td+';font-family:monospace;color:#4361ee">'+esc(l.code)+'</td>'
+        +'<td style="'+td+'">'+esc(l.name)+'</td>'
+        +'<td style="'+td+';text-align:right;font-weight:600">'+(l.qty||0).toLocaleString()+'</td></tr>';
+    }).join('')
+    +'</tbody><tfoot><tr style="background:var(--bg);font-weight:700"><td colspan="2" style="padding:8px;text-align:right;font-size:12px">합계</td>'
+    +'<td style="padding:8px;text-align:right;font-size:12px">'+(s.qty||0).toLocaleString()+'</td></tr></tfoot>'
+    +'</table></div></div>';
+  ARAM_UI.Modal.open({ title:'출고 상세 — '+s.no, body:body, size:'lg', footer:[
+    {label:'출고취소', type:'danger', onClick:function(c){c();window._shipCancel(no);}},
+    {label:'닫기', type:'secondary', onClick:function(c){c();}}
+  ]});
+};
+
+/* 출고 등록 모달 */
+window._openShipEntry = function(orderNo){
+  var old=document.getElementById('sh-bd'); if(old) old.remove();
+  var esc=window._soEsc;
+  var today=new Date().toISOString().slice(0,10);
+  var targets=(window._ordersDB||[]).filter(function(o){return o.lines&&(o.status==='접수'||o.status==='진행중');});
+  if(!targets.length){ if(window.ARAM_UI)ARAM_UI.Toast.info('출고 가능한 주문이 없습니다. 주문관리에서 주문을 먼저 입력하세요.'); return; }
+  var opts='<option value="">— 주문 선택 —</option>'+targets.map(function(o){
+    return '<option value="'+esc(o.no)+'"'+(o.no===orderNo?' selected':'')+'>'+esc(o.no)+' · '+esc(o.client)+' · '+esc(o.product)+'</option>';
+  }).join('');
+  var lbl='min-width:62px;font-size:12px;color:var(--muted);flex-shrink:0';
+  var fld='padding:5px 8px;border:1.5px solid var(--bdr);border-radius:5px;background:var(--bg);color:var(--txt);font-size:13px;outline:none';
+  var bd=document.createElement('div'); bd.id='sh-bd';
+  bd.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:14px';
+  bd.innerHTML=
+    '<div style="background:var(--surface,#fff);border-radius:12px;width:860px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:hidden">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1e2b4a;color:#fff">'
+      +'<span style="font-size:15px;font-weight:800">🚚 출고처리</span>'
+      +'<button onclick="var b=document.getElementById(\'sh-bd\');if(b)b.remove();" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer">✕</button>'
+    +'</div>'
+    +'<div style="padding:14px 18px;overflow:auto;flex:1">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px">'
+        +'<div style="display:flex;align-items:center;gap:8px;grid-column:span 2"><label style="'+lbl+'">주문 *</label><select id="sh-order" onchange="_shipRenderLines()" style="'+fld+';flex:1">'+opts+'</select></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">출고일</label><input id="sh-date" type="date" value="'+today+'" style="'+fld+';flex:1"></div>'
+        +'<div style="display:flex;align-items:center;gap:8px"><label style="'+lbl+'">확인자</label><input id="sh-confirm" placeholder="담당자명" style="'+fld+';flex:1"></div>'
+        +'<div style="display:flex;align-items:center;gap:8px;grid-column:span 2"><label style="'+lbl+'">메모</label><input id="sh-memo" style="'+fld+';flex:1"></div>'
+      +'</div>'
+      +'<div id="sh-lines"><div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;border:1.5px dashed var(--bdr);border-radius:8px">주문을 선택하면 출고 가능한 품목이 표시됩니다</div></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;padding:10px 18px;border-top:1.5px solid var(--bdr);background:var(--surface,#fff)">'
+      +'<button onclick="_shipSave()" style="padding:8px 22px;background:#4361ee;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">출고 저장</button>'
+      +'<button onclick="var b=document.getElementById(\'sh-bd\');if(b)b.remove();" style="padding:8px 16px;background:var(--bg);color:var(--txt);border:1.5px solid var(--bdr);border-radius:6px;font-size:13px;cursor:pointer">닫기</button>'
+      +'<span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center">저장 시 원단(바닥지) 재고 차감 · 입출고이력 기록 · 주문 진행률 갱신</span>'
+    +'</div></div>';
+  document.body.appendChild(bd);
+  if(orderNo) window._shipRenderLines();
+};
+
+/* 선택 주문의 라인 → 출고수량 입력 그리드 */
+window._shipRenderLines = function(){
+  var box=document.getElementById('sh-lines'); if(!box) return;
+  var esc=window._soEsc;
+  var no=(document.getElementById('sh-order')||{}).value;
+  var o=(window._ordersDB||[]).find(function(x){return x.no===no;});
+  if(!o){ box.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;border:1.5px dashed var(--bdr);border-radius:8px">주문을 선택하면 출고 가능한 품목이 표시됩니다</div>'; return; }
+  var shipped=window._shShippedByOrder(no);
+  var th='padding:7px 8px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1.5px solid var(--bdr);text-align:left;white-space:nowrap';
+  var td='padding:6px 8px;font-size:12.5px;border-bottom:1px solid var(--bdr)';
+  var rows=o.lines.map(function(l,i){
+    var done=shipped[i]||0, remain=Math.max(0,(l.qty||0)-done);
+    var name=(l.pname||'')+(l.pname&&l.fname?' / ':'')+(l.fname||'');
+    var code=l.fcode||l.pcode||'';
+    return '<tr data-idx="'+i+'" data-code="'+esc(code)+'" data-name="'+esc(name)+'">'
+      +'<td style="'+td+';font-family:monospace;color:#4361ee">'+esc(code)+'</td>'
+      +'<td style="'+td+'">'+esc(name)+'</td>'
+      +'<td style="'+td+';text-align:right">'+(l.qty||0).toLocaleString()+'</td>'
+      +'<td style="'+td+';text-align:right;color:#9ba8c0">'+done.toLocaleString()+'</td>'
+      +'<td style="'+td+';text-align:right;font-weight:600;color:'+(remain>0?'#10b981':'#9ba8c0')+'">'+remain.toLocaleString()+'</td>'
+      +'<td style="'+td+';width:110px"><input type="number" class="sh-qty" min="0" max="'+remain+'" value="'+remain+'" style="width:100%;padding:4px 6px;border:1px solid var(--bdr);border-radius:4px;background:var(--bg);color:var(--txt);font-size:12px;text-align:right;box-sizing:border-box"'+(remain===0?' disabled':'')+'></td>'
+    +'</tr>';
+  }).join('');
+  box.innerHTML='<div style="overflow-x:auto;border:1.5px solid var(--bdr);border-radius:8px">'
+    +'<table style="width:100%;border-collapse:collapse;min-width:640px">'
+    +'<thead><tr><th style="'+th+'">코드</th><th style="'+th+'">품목명</th><th style="'+th+';text-align:right">주문수량</th><th style="'+th+';text-align:right">기출고</th><th style="'+th+';text-align:right">잔여</th><th style="'+th+';text-align:right">출고수량</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>';
+};
+
+/* 출고 저장 */
+window._shipSave = function(){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
+  var orderNo=g('sh-order');
+  if(!orderNo){ if(window.ARAM_UI)ARAM_UI.Toast.error('주문을 선택하세요.'); return; }
+  var o=(window._ordersDB||[]).find(function(x){return x.no===orderNo;});
+  if(!o){ if(window.ARAM_UI)ARAM_UI.Toast.error('주문을 찾을 수 없습니다.'); return; }
+  var shipped=window._shShippedByOrder(orderNo);
+  var lines=[], over=null;
+  document.querySelectorAll('#sh-lines tr[data-idx]').forEach(function(tr){
+    var idx=parseInt(tr.dataset.idx,10);
+    var inp=tr.querySelector('.sh-qty');
+    var qty=inp?(parseFloat(inp.value)||0):0;
+    if(qty<=0) return;
+    var remain=Math.max(0,((o.lines[idx]||{}).qty||0)-(shipped[idx]||0));
+    if(qty>remain){ over={name:tr.dataset.name,remain:remain}; return; }
+    lines.push({ idx:idx, code:tr.dataset.code, name:tr.dataset.name, qty:qty,
+      fcode:(o.lines[idx]||{}).fcode, pcode:(o.lines[idx]||{}).pcode });
+  });
+  if(over){ if(window.ARAM_UI)ARAM_UI.Toast.error(over.name+' 출고수량이 잔여('+over.remain.toLocaleString()+')를 초과합니다.'); return; }
+  if(!lines.length){ if(window.ARAM_UI)ARAM_UI.Toast.error('출고수량을 1 이상 입력하세요.'); return; }
+  var user=g('sh-confirm')||'-';
+  var ship={ no:window._nextShipNo(), orderNo:orderNo, client:o.client, date:g('sh-date'),
+    confirmedBy:user, memo:g('sh-memo'),
+    lines:lines.map(function(l){return {idx:l.idx,code:l.code,name:l.name,qty:l.qty};}),
+    qty:lines.reduce(function(s,l){return s+l.qty;},0) };
+  window._shipmentsDB.unshift(ship);
+  window._saveShipments();
+  lines.forEach(function(l){ window._shMoveStock(l, -l.qty, ship.no, orderNo, user); });
+  window._shSyncOrderProgress(orderNo);
+  if(window.ARAM_UI) ARAM_UI.Toast.success('출고 '+ship.no+' 완료 ('+lines.length+'개 품목 · '+ship.qty.toLocaleString()+') — 재고 차감·이력 기록');
+  var bd=document.getElementById('sh-bd'); if(bd) bd.remove();
+  if(window.goPage) window.goPage('sales-shipping');
+};
+
+/* 출고 취소 — 재고 복원 + 이력 정리 + 주문 진행률 재계산 */
+window._shipCancel = function(no){
+  if(!window.ARAM_UI) return;
+  var idx=(window._shipmentsDB||[]).findIndex(function(s){return s.no===no;});
+  if(idx<0){ ARAM_UI.Toast.error('출고 ['+no+']를 찾을 수 없습니다.'); return; }
+  var s=window._shipmentsDB[idx];
+  ARAM_UI.Modal.open({
+    title:'출고 취소',
+    body:'<p style="text-align:center;padding:8px 0;color:#525f7f;font-size:14px">출고 <strong>'+window._soEsc(no)+'</strong>를 취소하시겠습니까?<br>재고가 복원되고 주문 진행률이 재계산됩니다.</p>',
+    size:'sm',
+    footer:[
+      {label:'닫기', type:'secondary', onClick:function(c){c();}},
+      {label:'출고 취소', type:'danger', onClick:function(c){
+        c();
+        var orderNo=s.orderNo;
+        var o=(window._ordersDB||[]).find(function(x){return x.no===orderNo;});
+        (s.lines||[]).forEach(function(l){
+          var line=o&&o.lines?(o.lines[l.idx]||l):l;
+          window._shMoveStock({fcode:line.fcode,pcode:line.pcode,code:l.code,name:l.name}, +l.qty, s.no, orderNo, s.confirmedBy);
+        });
+        window._shipmentsDB.splice(idx,1);
+        window._saveShipments();
+        window._shSyncOrderProgress(orderNo);
+        ARAM_UI.Toast.success('출고 '+no+'가 취소되었습니다. (재고 복원)');
+        if(document.getElementById('sh-tbody')) window._shApplyFilter();
       }}
     ]
   });
