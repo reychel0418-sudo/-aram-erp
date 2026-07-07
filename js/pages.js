@@ -1629,7 +1629,7 @@ window.ARAM_PAGES = {
             <div class="detail-actions">
               <button class="btn btn-secondary btn-sm" onclick="printPage('.detail-layout')">🖨 출력</button>
               <button class="btn btn-secondary btn-sm" onclick="if(window.ARAM_UI) ARAM_UI.Toast.info('주문 복제 기능은 준비 중입니다.')">⎘ 복제</button>
-              <button class="btn btn-secondary btn-sm" style="color:#ef4444;border-color:#fecaca" onclick="if(window.ARAM_UI) ARAM_UI.Modal.open({title:'주문 취소',body:'<p style=\'text-align:center;padding:8px 0;color:#525f7f;font-size:14px\'>주문 <strong>'+window.ARAM_DATA.orderDetail.no+'</strong>를<br>취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>',size:\'sm\',footer:[{label:\'닫기\',type:\'secondary\',onClick:c=>c()},{label:\'주문 취소\',type:\'danger\',onClick:c=>{c();ARAM_UI.Toast.error(\'주문가 취소되었습니다.\')}}]})">✕ 취소</button>
+              <button class="btn btn-secondary btn-sm" style="color:#ef4444;border-color:#fecaca" onclick="if(window.ARAM_UI) ARAM_UI.Modal.open({title:'주문 취소',body:'<p style=\'text-align:center;padding:8px 0;color:#525f7f;font-size:14px\'>주문 <strong>'+window.ARAM_DATA.orderDetail.no+'</strong>를<br>취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>',size:\'sm\',footer:[{label:\'닫기\',type:\'secondary\',onClick:c=>c()},{label:\'주문 취소\',type:\'danger\',onClick:c=>{c();ARAM_UI.Toast.error(\'주문이 취소되었습니다.\')}}]})">✕ 취소</button>
               <button class="btn btn-primary btn-sm">✏ 수정</button>
             </div>
           </div>
@@ -8741,6 +8741,8 @@ window._orderSave = function(){
   else{ window._ordersDB.unshift(order); }
   window._orderEditNo=null;
   if(window._saveOrders) window._saveOrders();
+  /* 수량이 바뀌면 출고 누계 대비 진행률·상태 재계산 */
+  if(prev&&window._shSyncOrderProgress) window._shSyncOrderProgress(order.no);
   if(window.ARAM_UI) ARAM_UI.Toast.success('주문 '+order.no+(prev?' 수정':' 저장')+' 완료 ('+lines.length+'줄 · ₩'+order.total.toLocaleString()+')');
   var bd=document.getElementById('od-bd'); if(bd) bd.remove();
   if(window.goPage) window.goPage('sales-orders');
@@ -8799,6 +8801,12 @@ window._openOrderEntry = function(editNo){
       +'<span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center">제품코드→디자인단가, 원단코드→원단단가(아람원단만 측정) · 공급가액 = 수량×(디자인+원단)</span>'
     +'</div></div>';
   document.body.appendChild(bd);
+  /* F8 = 저장 (모달이 열려있는 동안만) */
+  var odF8=function(e){
+    if(!document.getElementById('od-bd')){ document.removeEventListener('keydown', odF8); return; }
+    if(e.key==='F8'){ e.preventDefault(); window._orderSave(); }
+  };
+  document.addEventListener('keydown', odF8);
   if(edit){
     var set=function(id,v){var e=document.getElementById(id);if(e&&v!=null&&v!=='')e.value=v;};
     set('od-date',edit.date); set('od-client',edit.client); set('od-mgr',edit.mgr==='-'?'':edit.mgr);
@@ -9001,6 +9009,8 @@ window._orderDelete = function(no){
   if(!window.ARAM_UI) return;
   var idx=(window._ordersDB||[]).findIndex(function(o){return o.no===no;});
   if(idx<0){ ARAM_UI.Toast.info('샘플 주문은 삭제할 수 없습니다.'); return; }
+  var shipCnt=(window._shipmentsDB||[]).filter(function(s){return s.orderNo===no;}).length;
+  if(shipCnt){ ARAM_UI.Toast.error('출고 이력('+shipCnt+'건)이 있는 주문입니다. 출하관리에서 출고취소 후 삭제하세요.'); return; }
   ARAM_UI.Modal.open({
     title:'주문 삭제',
     body:'<p style="text-align:center;padding:8px 0;color:#525f7f;font-size:14px">주문 <strong>'+window._soEsc(no)+'</strong>를 삭제하시겠습니까?<br>이 작업은 되돌릴 수 없습니다.</p>',
@@ -9053,10 +9063,14 @@ window._shSyncOrderProgress = function(orderNo){
   Object.keys(map).forEach(function(k){ shipped+=map[k]; });
   if(total>0){
     var pct=Math.min(100, Math.round(shipped/total*100));
-    o.progress=pct;
-    if(pct>=100) o.status='완료';
-    else if(shipped>0&&o.status!=='취소') o.status='진행중';
-    else if(shipped===0&&o.status==='완료') o.status='진행중';
+    if(shipped>0){
+      o.progress=pct;
+      if(pct>=100) o.status='완료';
+      else if(o.status!=='취소') o.status='진행중';
+    }else if(o.status==='완료'){
+      /* 전량 출고취소 → 완료 해제 (미출고 주문의 수동 진행률은 유지) */
+      o.progress=0; o.status='진행중';
+    }
   }
   if(window._saveOrders) window._saveOrders();
 };
@@ -10291,13 +10305,11 @@ window._openNewEmbWO = function() {
         + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">담당자</label><select class="form-select" style="width:100%"><option>김자수</option><option>이자수</option><option>박자수</option></select></div>'
         + '<div><label style="font-size:12px;color:#9ba8c0;display:block;margin-bottom:4px">자수기</label><select class="form-select" style="width:100%"><option>TMEZ-01</option><option>TMEZ-02</option><option>TMEZ-03</option></select></div>'
         + '</div></div>',
-      actions: [
-        {label:'취소', cls:'btn-secondary', action: function(){ if(window.ARAM_UI)ARAM_UI.Modal.close(); }},
-        {label:'작업지시 생성', cls:'btn-primary', action: function(){
-          if(window.ARAM_UI){
-            ARAM_UI.Modal.close();
-            ARAM_UI.Toast.success('신규 작업지시 WO-EMB-2026-0157 생성 완료');
-          }
+      footer: [
+        {label:'취소', type:'secondary', onClick: function(close){ close(); }},
+        {label:'작업지시 생성', type:'primary', onClick: function(close){
+          close();
+          if(window.ARAM_UI) ARAM_UI.Toast.success('신규 작업지시 WO-EMB-2026-0157 생성 완료');
         }}
       ]
     });
