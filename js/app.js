@@ -1117,8 +1117,8 @@
   ────────────────────────────────────────── */
   window._openProductionLinkModal = function (idx) {
     if (!window.ARAM_UI) return;
-    const orders = (window.ARAM_DATA || {}).salesOrders || [];
-    const o = orders[idx];
+    const orders = (window._ordersDB || []).concat((window.ARAM_DATA || {}).salesOrders || []);
+    const o = typeof idx === 'string' ? orders.find(x => x.no === idx) : orders[idx];
     if (!o) return;
 
     /* 작업지시번호 자동 채번 */
