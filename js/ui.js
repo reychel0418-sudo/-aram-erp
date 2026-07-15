@@ -73,6 +73,7 @@ window.ARAM_UI = (function () {
      2. MODAL
   ══════════════════════════════════════════════════════ */
   let _activeBd = null;
+  let _activeClose = null;
 
   /**
    * Modal.open({ title, body, size:'sm'|''|'lg', footer:[{label, type, onClick}] })
@@ -102,6 +103,7 @@ window.ARAM_UI = (function () {
 
     document.body.appendChild(bd);
     _activeBd = bd;
+    _activeClose = close;
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => bd.classList.add('show'));
@@ -111,6 +113,7 @@ window.ARAM_UI = (function () {
     function close() {
       bd.classList.remove('show');
       setTimeout(() => { bd.remove(); if (_activeBd === bd) _activeBd = null; }, 250);
+      if (_activeClose === close) _activeClose = null;
       if (onClose) onClose();
     }
 
@@ -130,7 +133,7 @@ window.ARAM_UI = (function () {
     return { close, bd };
   }
 
-  const Modal = { open: openModal };
+  const Modal = { open: openModal, close() { if (_activeClose) _activeClose(); } };
 
   /* ══════════════════════════════════════════════════════
      3. NOTIFICATION PANEL
@@ -588,7 +591,7 @@ window.ARAM_UI = (function () {
             return;
           }
           close();
-          Toast.success(`주문가 등록되었습니다. (${client} — ${product})`);
+          Toast.success(`주문이 등록되었습니다. (${client} — ${product})`);
         }},
       ],
     });
